@@ -44,7 +44,7 @@ class Organization(models.Model):
 
     # Model methods
     def __str__(self):
-        return self.name
+        return self.organization_name
     
 class Employee(models.Model):
     # Model fields
