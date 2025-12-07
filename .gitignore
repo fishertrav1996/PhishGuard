@@ -1,6 +1,98 @@
-/.vscode
-/db.sqlite3
+# =====================================
+# Python
+# =====================================
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# =====================================
+# Django
+# =====================================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# If using Django static files (collected via collectstatic)
+staticfiles/
+static/
+
+# =====================================
+# Virtual Environment
+# =====================================
+# Virtualenv
+venv/
+ENV/
+env/
+.venv/
+
+# Poetry
+.poetry/
+
+# Pipenv
+Pipfile.lock
+
+# =====================================
+# IDE / Editor
+# =====================================
+# VSCode
+.vscode/
+
+# PyCharm / JetBrains
+.idea/
+
+# Vim
+*.swp
+*.swo
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
+
+# =====================================
+# OS-specific files
+# =====================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =====================================
+# Docker
+# =====================================
+# If you build Docker images locally
+*.pid
+*.seed
+*.pidfile
+
+# =====================================
+# Testing
+# =====================================
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+
+# =====================================
+# Migrations (KEEP these)
+# =====================================
+# DO NOT ignore migrations/*.py
+# Only ignore their bytecode
+migrations/__pycache__/
+
+# =====================================
+# Env files
+# =====================================
+.env
+.env.*
+*.env
