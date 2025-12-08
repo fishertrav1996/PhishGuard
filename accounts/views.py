@@ -27,8 +27,12 @@ def post_new_user(req):
 
             # Save the user to the database
             user.save()
-
             return HttpResponse("User created successfully")
+
+
+        else:
+            return render(req, "accounts/new_user.html", {"form": form})
+
     else:
         return HttpResponseNotAllowed(['POST'])
     
