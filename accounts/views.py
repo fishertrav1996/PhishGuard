@@ -1,10 +1,12 @@
 from django.shortcuts import render
+from django import forms
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.contrib.auth.models import User
+from django.contrib import messages
 from .forms import NewUserForm
 
-# Create your views here.
-def post_new_user(req):
+#TODO handle other validation errors like duplicate usernames/emails
+def new_user_view(req):
     if req.method == 'POST':
         # Process the form data and create a new user
         form = NewUserForm(req.POST)
@@ -31,16 +33,12 @@ def post_new_user(req):
 
 
         else:
-            return render(req, "accounts/new_user.html", {"form": form})
+            messages.error(req, "There were errors in the form. Please correct them and try again.")
+            return render(req, "accounts/new_user_form.html", {"form": form})
 
-    else:
-        return HttpResponseNotAllowed(['POST'])
-    
-def get_new_user_form(req):
-
-    form = NewUserForm()
-
-    if req.method == 'GET':
+    elif req.method == 'GET':
+        form = NewUserForm()
         return render(req, 'accounts/new_user_form.html', {'form': form})
     else:
-        return HttpResponseNotAllowed(['GET'])
+        return HttpResponseNotAllowed(['GET', 'POST'])
+

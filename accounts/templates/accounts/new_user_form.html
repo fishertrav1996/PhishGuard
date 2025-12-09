@@ -4,7 +4,7 @@
 
 {% block content %}
     <div class="container">
-        <form method='POST' action='{% url "post_new_user" %}'>
+        <form method='POST' action='{% url "new_user" %}'>
             {% csrf_token %}
             {{form.as_p}}
             <button type='submit' class="pg-btn-primary">Send POST</button>

@@ -114,6 +114,14 @@
             box-shadow: 0 6px 14px rgba(30,58,138,0.25);
         }
 
+        .errorlist {
+            color: #a94442;
+            background: #fdd;
+            border: 1px solid #e5a5a5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
@@ -140,6 +148,17 @@
         <h1>PhishGuard</h1>
         <p>Strengthening Healthcare Organizations Against Email-Based Threats</p>
     </header>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <script>
+            alert('{{ message }}');
+        </script>
+
+        {% endfor %}
+    </ul>
+    {% endif %}
 
     {% block content %}
     {% endblock %}

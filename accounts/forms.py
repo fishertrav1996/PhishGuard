@@ -1,4 +1,6 @@
 from django import forms
+from django.contrib.auth.models import User
+from django.contrib import messages
 
 class NewUserForm(forms.Form):
     username = forms.CharField(max_length=150, label='Username')
@@ -10,8 +12,16 @@ class NewUserForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+
+        # Password match validation
         password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
 
         if password != confirm_password:
             raise forms.ValidationError("Passwords do not match.")
+        
+        # Duplicate username validation 
+        username = cleaned_data.get('username')
+        
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Username already exists. Please choose a different username.")
