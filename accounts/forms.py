@@ -22,6 +22,12 @@ class NewUserForm(forms.Form):
         
         # Duplicate username validation 
         username = cleaned_data.get('username')
-        
+
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("Username already exists. Please choose a different username.")
+        
+        # Duplicate email validation 
+        email = cleaned_data.get('email')
+        
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email already exists. Please login if you have an existing account.")
