@@ -31,3 +31,10 @@ class NewUserForm(forms.Form):
         
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("Email already exists. Please login if you have an existing account.")
+
+class UserLoginForm(forms.Form):
+    username = forms.CharField(max_length=150, label='Username')
+    password = forms.CharField(widget=forms.PasswordInput, label='Password')
+
+    def clean(self):
+        cleaned_data =  super().clean()

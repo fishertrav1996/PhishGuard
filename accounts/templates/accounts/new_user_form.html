@@ -7,11 +7,10 @@
         <form method='POST' action='{% url "new_user" %}'>
             {% csrf_token %}
             {{form.as_p}}
-            <button type='submit' class="pg-btn-primary">Send POST</button>
+            <button type='submit' class="pg-btn-primary">Register</button>
 
         </form>
 
     </div>
-    
 
 {% endblock %}

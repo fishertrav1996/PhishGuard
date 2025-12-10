@@ -138,7 +138,7 @@
                 {% if user.is_authenticated %}
                     <span class="nav-link">Hi, {{ user.username }}!</span>
                 {% else %}
-                    <a class="nav-link" href="#">Login</a>
+                    <a class="nav-link" href="{% url 'user_login' %}">Login</a>
                 {% endif %}
             </div>
         </div>
