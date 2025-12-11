@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django import forms
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
@@ -58,7 +58,8 @@ def user_login_view(req):
             if current_user is not None:
                 login(req, current_user)
                 #TODO Redirect to a success page or home page
-                return HttpResponse("Login successful!")
+                return HttpResponseRedirect('/home')
+                #return HttpResponse("Login successful!")
             else:
                 messages.error(req, "Invalid username/password.")
                 return render(req, "accounts/login_form.html", {"form": form})
