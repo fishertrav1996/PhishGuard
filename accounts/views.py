@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect
 from django import forms
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
+from django.http import HttpResponseNotAllowed, HttpResponseRedirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .forms import NewUserForm, UserLoginForm
 
-#TODO Finish and test user login functionality
 def new_user_view(req):
     if req.method == 'POST':
         # Process the form data and create a new user
@@ -30,8 +29,10 @@ def new_user_view(req):
 
             # Save the user to the database
             user.save()
+
             #TODO Maybe redirect here to success page or login page
-            return HttpResponse("User created successfully")
+            messages.success(req, "User created successfully.")
+            return HttpResponseRedirect('/accounts/login')
 
 
         else:
@@ -57,9 +58,7 @@ def user_login_view(req):
             current_user = authenticate(username=username, password=password)
             if current_user is not None:
                 login(req, current_user)
-                #TODO Redirect to a success page or home page
                 return HttpResponseRedirect('/home')
-                #return HttpResponse("Login successful!")
             else:
                 messages.error(req, "Invalid username/password.")
                 return render(req, "accounts/login_form.html", {"form": form})
@@ -68,10 +67,13 @@ def user_login_view(req):
             return render(req, "accounts/login_form.html", {"form": form})
         
     elif req.method == 'GET':
-        #TODO If GET request but the user is already authenticated, redirect to home page
-        
-        form = UserLoginForm()
-        return render(req, 'accounts/login_form.html', {'form': form})
+        # If GET request but the user is already authenticated, redirect to home page
+        if req.user.is_authenticated:
+            return HttpResponseRedirect('/home')
+        # Else, render the login form
+        else:
+            form = UserLoginForm()
+            return render(req, 'accounts/login_form.html', {'form': form})
     else:
         return HttpResponseNotAllowed(['GET', 'POST'])
 
