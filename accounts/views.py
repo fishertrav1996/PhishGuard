@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django import forms
 from django.http import HttpResponseNotAllowed, HttpResponseRedirect
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import NewUserForm, UserLoginForm
 
@@ -30,7 +31,6 @@ def new_user_view(req):
             # Save the user to the database
             user.save()
 
-            #TODO Maybe redirect here to success page or login page
             messages.success(req, "User created successfully.")
             return HttpResponseRedirect('/accounts/login')
 
@@ -78,3 +78,11 @@ def user_login_view(req):
         return HttpResponseNotAllowed(['GET', 'POST'])
 
 
+@login_required
+def user_logout_view(req):
+    
+    if req.method == 'POST':
+        logout(req)
+        return HttpResponseRedirect('/accounts/login')
+    else:
+        return HttpResponseNotAllowed(['POST'])
