@@ -1,0 +1,16 @@
+{% extends "core/base.html" %}
+
+{% block title %}PhishGuard • New Organization Registration{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <form method='POST' action='{% url "new_org" %}'>
+            {% csrf_token %}
+            {{form.as_p}}
+            <button type='submit' class="pg-btn-primary">Register Org</button>
+
+        </form>
+
+    </div>
+
+{% endblock %}
