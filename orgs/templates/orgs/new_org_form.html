@@ -1,16 +1,61 @@
 {% extends "core/base.html" %}
 
-{% block title %}PhishGuard • New Organization Registration{% endblock %}
+{% block title %}Register New Organization{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <form method='POST' action='{% url "new_org" %}'>
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-3xl font-bold mb-2 text-blue-900">New Organization</h2>
+        <p class="text-gray-600 mb-6">Register your healthcare organization and get started with PhishGuard.</p>
+        
+        <form method='POST' action='{% url "new_org" %}' class="space-y-5">
             {% csrf_token %}
-            {{form.as_p}}
-            <button type='submit' class="pg-btn-primary">Register Org</button>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for field in form %}
+                    {% if field.widget.attrs.widget_type == 'textarea' or field.name == 'street_address_2' %}
+                        <div class="form-control md:col-span-2">
+                    {% else %}
+                        <div class="form-control">
+                    {% endif %}
+                        <label class="label">
+                            <span class="label-text font-semibold">{{ field.label }}</span>
+                            {% if field.field.required %}
+                                <span class="label-text-alt text-error">*</span>
+                            {% endif %}
+                        </label>
+                        
+                        {% if field.errors %}
+                            {{ field }}
+                            <div class="text-error text-sm mt-1">
+                                {% for error in field.errors %}
+                                    {{ error }}<br>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
 
+            <div class="flex gap-4 mt-8">
+                <button type='submit' class="btn btn-primary flex-1">Register Organization</button>
+                <a href="{% url 'home' %}" class="btn btn-outline flex-1">Cancel</a>
+            </div>
         </form>
-
     </div>
 
+    <style>
+        input[type="text"],
+        input[type="email"],
+        input[type="url"],
+        select,
+        textarea {
+            @apply input input-bordered w-full;
+        }
+        
+        select {
+            @apply select select-bordered w-full;
+        }
+    </style>
 {% endblock %}

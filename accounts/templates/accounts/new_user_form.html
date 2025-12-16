@@ -1,16 +1,47 @@
 {% extends "core/base.html" %}
 
-{% block title %}PhishGuard • New User Registration{% endblock %}
+{% block title %}User Registration{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <form method='POST' action='{% url "new_user" %}'>
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-3xl font-bold mb-6 text-blue-900">Create Account</h2>
+        
+        <form method='POST' action='{% url "new_user" %}' class="space-y-4">
             {% csrf_token %}
-            {{form.as_p}}
-            <button type='submit' class="pg-btn-primary">Register</button>
+            
+            {% for field in form %}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">{{ field.label }}</span>
+                    </label>
+                    {% if field.errors %}
+                        {{ field }}
+                        <div class="text-error text-sm mt-1">
+                            {% for error in field.errors %}
+                                {{ error }}<br>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+                </div>
+            {% endfor %}
 
+            <button type='submit' class="btn btn-primary w-full mt-6">Register</button>
         </form>
 
+        <p class="text-center mt-4 text-gray-600">
+            Already have an account? <a href="{% url 'user_login' %}" class="link link-primary font-semibold">Sign in</a>
+        </p>
     </div>
 
+    <style>
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        select,
+        textarea {
+            @apply input input-bordered input-md w-full max-w-xs;
+        }
+    </style>
 {% endblock %}

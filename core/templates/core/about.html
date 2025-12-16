@@ -1,41 +1,55 @@
 {% extends "core/base.html" %}
 
-{% block title %}PhishGuard • About{% endblock %}
+{% block title %}About Us{% endblock %}
 
 {% block content %}
+    <div class="max-w-4xl mx-auto space-y-8">
+        <section>
+            <h1 class="text-4xl font-bold text-gray-900 mb-6">About PhishGuard</h1>
 
-    <div class="container mt-5">
-        <h1>About PhishGuard</h1>
+            <p class="text-lg text-gray-700 mb-4">
+                PhishGuard was created in response to the rising number of ransomware attacks targeting hospitals, clinics, 
+                and healthcare systems across the United States. Despite improvements in network security, many breaches in 
+                healthcare still begin the same way: a staff member receives a malicious email and accidentally interacts with it.
+            </p>
 
-        <p class="mt-4">
-            PhishGuard was created in response to the rising number of ransomware attacks targeting hospitals, clinics, 
-            and healthcare systems across the United States. Despite improvements in network security, many breaches in 
-            healthcare still begin the same way: a staff member receives a malicious email and accidentally interacts with it.
-        </p>
+            <p class="text-lg text-gray-700">
+                Healthcare organizations face unique pressures—fast-paced environments, high-value patient data, and staff who 
+                often juggle multiple responsibilities. These conditions make phishing one of the most successful attack vectors 
+                for threat actors looking to deploy ransomware or compromise critical systems.
+            </p>
+        </section>
 
-        <p>
-            Healthcare organizations face unique pressures—fast-paced environments, high-value patient data, and staff who 
-            often juggle multiple responsibilities. These conditions make phishing one of the most successful attack vectors 
-            for threat actors looking to deploy ransomware or compromise critical systems.
-        </p>
+        <section>
+            <h2 class="text-3xl font-bold text-gray-900 mb-6">Why PhishGuard Exists</h2>
+            <p class="text-lg text-gray-700 mb-6">
+                PhishGuard was built to give healthcare organizations a practical way to:
+            </p>
 
-        <h3 class="mt-4">Why PhishGuard Exists</h3>
-        <p>
-            PhishGuard was built to give healthcare organizations a practical way to:
-        </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="flex items-start space-x-3">
+                    <span class="text-2xl text-blue-900">✓</span>
+                    <p class="text-gray-700">Identify phishing-related weaknesses in real-world scenarios</p>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <span class="text-2xl text-blue-900">✓</span>
+                    <p class="text-gray-700">Educate employees using focused, healthcare-specific training</p>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <span class="text-2xl text-blue-900">✓</span>
+                    <p class="text-gray-700">Measure improvement over time with clear analytics</p>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <span class="text-2xl text-blue-900">✓</span>
+                    <p class="text-gray-700">Increase resilience to ransomware and email attacks</p>
+                </div>
+            </div>
 
-        <ul>
-            <li>Identify phishing-related weaknesses in real-world scenarios</li>
-            <li>Educate employees using focused, healthcare-specific training</li>
-            <li>Measure improvement over time with clear analytics</li>
-            <li>Increase overall resilience to ransomware and email-based attacks</li>
-        </ul>
-
-        <p class="mt-4">
-            By equipping healthcare staff with the awareness and tools needed to recognize malicious emails, PhishGuard 
-            helps reduce the likelihood of ransomware events that could disrupt patient care, damage reputation, and create 
-            significant financial loss.
-        </p>
+            <p class="text-lg text-gray-700 bg-blue-50 p-6 rounded-lg border-l-4 border-blue-900">
+                By equipping healthcare staff with the awareness and tools needed to recognize malicious emails, PhishGuard 
+                helps reduce the likelihood of ransomware events that could disrupt patient care, damage reputation, and create 
+                significant financial loss.
+            </p>
+        </section>
     </div>
-
 {% endblock %}

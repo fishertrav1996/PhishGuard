@@ -1,13 +1,39 @@
 from django import forms
+from .models import Organization, HEALTHCARE_ORG_TYPES, SUBSCRIPTION_TYPES
 
-class NewOrgForm(forms.Form):
-    organization_name = forms.CharField(label='Organization Name', max_length=100)
-    #TODO current user should be set as owner
-    owner = forms.CharField(label='Owner', max_length=100)
-    organization_type = forms.CharField(label='Organization Type', max_length=100)
-    website = forms.URLField(label='Website', required=False)
-    street_address = forms.CharField(label='Street Address', max_length=255)
-    city = forms.CharField(label='City', max_length=100)
-    state = forms.CharField(label='State', max_length=100)
-    zip_code = forms.CharField(label='Zip Code', max_length=20)
-    country = forms.CharField(label='Country', max_length=100)
+class NewOrgForm(forms.ModelForm):
+    organization_type = forms.ChoiceField(
+        choices=HEALTHCARE_ORG_TYPES,
+        label='Organization Type'
+    )
+    subscription_type = forms.ChoiceField(
+        choices=SUBSCRIPTION_TYPES,
+        label='Subscription Type'
+    )
+
+    class Meta:
+        model = Organization
+        fields = [
+            'organization_name',
+            'organization_type',
+            'website',
+            'street_address_1',
+            'street_address_2',
+            'city',
+            'state_province',
+            'postal_code',
+            'country',
+            'subscription_type'
+        ]
+        labels = {
+            'organization_name': 'Organization Name',
+            'organization_type': 'Organization Type',
+            'website': 'Website',
+            'street_address_1': 'Street Address',
+            'street_address_2': 'Street Address 2 (Optional)',
+            'city': 'City',
+            'state_province': 'State/Province',
+            'postal_code': 'Postal Code',
+            'country': 'Country',
+            'subscription_type': 'Subscription Type'
+        }

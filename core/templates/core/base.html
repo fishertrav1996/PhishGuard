@@ -1,213 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}{% endblock %} - PhishGuard</title>
 
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- DaisyUI via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    
+    <!-- HTMX for dynamic interactions -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
     <style>
-        body {
-            font-family: "Inter", Arial, sans-serif;
-            background: #f5f7fa;
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-
-        /* Modern Glass Navbar */
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            backdrop-filter: blur(12px);
-            background: rgba(255, 255, 255, 0.7);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-            z-index: 1000;
-        }
-
-        .nav-container {
-            max-width: 1100px;
-            margin: auto;
-            padding: 14px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .nav-brand {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #1e3a8a;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 24px;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #1e3a8a;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-
-        .nav-link:hover {
-            color: #0d2564;
-        }
-
-        .nav-links form.nav-link {
-            display: inline-block;
-            margin: 0;
-            padding: 0;
-        }
-
-        .nav-logout-btn {
-            background: #1e3a8a;
-            color: #fff;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 9px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.18s ease;
-            box-shadow: 0 4px 10px rgba(30,58,138,0.2);
-            font-size: 0.95rem;
-        }
-
-        .nav-logout-btn:hover {
-            background: #15306b;
-            color: #fff;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 14px rgba(30,58,138,0.25);
-        }
-
-        .nav-logout-btn:focus-visible {
-            outline: 3px solid rgba(30,58,138,0.12);
-            outline-offset: 2px;
-        }
-
-        @media (max-width: 640px) {
-            .nav-logout-btn {
-                padding: 6px 8px;
-                font-size: 0.9rem;
-                border-radius: 8px;
-            }
-        }
-
-        /* Header Section */
-        header {
-            background: linear-gradient(135deg, #1e3a8a, #2a4fc8);
-            color: white;
-            text-align: center;
-            padding: 120px 20px 70px;
-            margin-top: 60px;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 2.8rem;
-            font-weight: 700;
-        }
-
-        header p {
-            margin-top: 10px;
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
-        /* Main content container */
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 14px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #777;
-            margin-top: 40px;
-        }
-
-        .pg-btn-primary {
-            display: inline-block;
-            padding: 14px 26px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            background: #1e3a8a;
-            color: #fff;
-            border-radius: 10px;
-            text-decoration: none;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 10px rgba(30,58,138,0.2);
-        }
-
-        .pg-btn-primary:hover {
-            background: #15306b;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(30,58,138,0.25);
-        }
-
-        .errorlist {
-            color: #a94442;
-            background: #fdd;
-            border: 1px solid #e5a5a5;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
+        /* Prevent layout shift during HTMX loads */
+        [hx-request].htmx-settling {
+            opacity: 0.5;
         }
     </style>
 </head>
+<body class="bg-gray-50">
 
-<body>
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white shadow-md z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="{% url 'home' %}" class="text-2xl font-bold text-blue-900">
+                    PhishGuard
+                </a>
 
-    <nav>
-        <div class="nav-container">
-            <a href="{% url 'home' %}" class="nav-brand">PhishGuard</a>
+                <!-- Nav Links -->
+                <div class="flex items-center gap-6">
+                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-900 transition">Home</a>
+                    <a href="{% url 'about' %}" class="text-gray-700 hover:text-blue-900 transition">About</a>
+                    <a href="{% url 'FAQ' %}" class="text-gray-700 hover:text-blue-900 transition">FAQ</a>
 
-            <div class="nav-links">
-                <a class="nav-link" href="{% url 'home' %}">Home</a>
-                <a class="nav-link" href="{% url 'about' %}">About</a>
-                <a class="nav-link" href="{% url 'FAQ' %}">FAQ</a>
-                {% if user.is_authenticated %}
-                    <span class="nav-link">Hi, {{ user.username }}!</span>
-                    <form class="nav-link" action="{% url 'user_logout' %}" method="POST">
-                        {% csrf_token %}
-                        <button type="submit" class="nav-logout-btn" aria-label="Log out">Log Out</button>
-                    </form>
-                {% else %}
-                    <a class="nav-link" href="{% url 'user_login' %}">Login</a>
-                {% endif %}
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'new_org' %}" class="text-gray-700 hover:text-blue-900 transition font-semibold">+ New Organization</a>
+                        
+                        <span class="text-gray-600">Hi, <span class="font-semibold">{{ user.username }}</span>!</span>
+                        
+                        <form action="{% url 'user_logout' %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline">Log Out</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'user_login' %}" class="btn btn-primary btn-sm">Login</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
 
-    <header>
-        <h1>PhishGuard</h1>
-        <p>Strengthening Healthcare Organizations Against Email-Based Threats</p>
+    <!-- Header -->
+    <header class="pt-20 pb-16 bg-gradient-to-r from-blue-900 to-blue-700 text-white text-center">
+        <h1 class="text-5xl font-bold mb-4">PhishGuard</h1>
+        <p class="text-xl opacity-90">Strengthening Healthcare Organizations Against Email-Based Threats</p>
     </header>
 
+    <!-- Messages -->
     {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <script>
-            alert('{{ message }}');
-        </script>
-
-        {% endfor %}
-    </ul>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} shadow-lg mb-4">
+                    <div>
+                        <span>{{ message }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 
-    {% block content %}
-    {% endblock %}
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {% block content %}{% endblock %}
+    </main>
 
-    <footer>
-        &copy; 2025 PhishGuard. All rights reserved.
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 text-center py-8 mt-16">
+        <p>&copy; 2025 PhishGuard. All rights reserved.</p>
     </footer>
 
 </body>

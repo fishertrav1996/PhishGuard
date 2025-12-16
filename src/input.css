@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-blue-900 text-white rounded-lg font-semibold transition-all duration-200 hover:bg-blue-800 active:scale-95;
+  }
+
+  .nav-link-active {
+    @apply text-blue-900 font-semibold;
+  }
+}
