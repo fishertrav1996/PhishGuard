@@ -1,0 +1,101 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Upload Employees - {{ org.organization_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white shadow-md rounded-lg p-8">
+        <h1 class="text-3xl font-bold mb-6">Upload Employees via CSV</h1>
+        <p class="text-gray-600 mb-6">Organization: <span class="font-semibold">{{ org.organization_name }}</span></p>
+        
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'error' or message.tags == 'warning' %}bg-red-100 border-red-400 text-red-700{% else %}bg-green-100 border-green-400 text-green-700{% endif %} border px-4 py-3 rounded mb-2">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-3">CSV Format Instructions</h2>
+            <p class="mb-3">Your CSV file must include the following columns as headers:</p>
+            <ul class="list-disc list-inside space-y-1 mb-4">
+                <li><strong>first_name</strong> (required)</li>
+                <li><strong>last_name</strong> (required)</li>
+                <li><strong>email</strong> (required, must be unique)</li>
+                <li><strong>role</strong> (optional, must be: ADMIN, STAFF, or OTHER. Default: STAFF)</li>
+                <li><strong>position</strong> (optional, job title)</li>
+            </ul>
+            
+            <div class="bg-white border border-gray-300 rounded p-3 mt-4">
+                <p class="text-sm font-mono text-gray-700 mb-2"><strong>Example CSV:</strong></p>
+                <pre class="text-xs text-gray-600">first_name,last_name,email,role,position
+John,Doe,john.doe@example.com,STAFF,Registered Nurse
+Jane,Smith,jane.smith@example.com,ADMIN,IT Manager
+Bob,Johnson,bob.j@example.com,STAFF,Pharmacist</pre>
+            </div>
+            
+            <div class="mt-4">
+                <a href="data:text/csv;charset=utf-8,first_name,last_name,email,role,position%0AJohn,Doe,john.doe@example.com,STAFF,Registered%20Nurse" 
+                   download="employee_template.csv"
+                   class="text-blue-600 hover:underline text-sm">
+                    📥 Download CSV template
+                </a>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="text-sm text-gray-500 mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% if field.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="flex space-x-4 pt-4">
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    Upload CSV
+                </button>
+                <a href="{% url 'list_employees' org.id %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
+                    Cancel
+                </a>
+            </div>
+        </form>
+        
+        <div class="mt-8 pt-6 border-t">
+            <p class="text-sm text-gray-600">
+                Or <a href="{% url 'add_employee' org.id %}" class="text-blue-600 hover:underline">add a single employee manually</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    input[type="file"] {
+        width: 100%;
+        padding: 0.5rem;
+        border: 2px dashed #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+    }
+    
+    input[type="file"]:hover {
+        border-color: #3b82f6;
+    }
+</style>
+{% endblock %}

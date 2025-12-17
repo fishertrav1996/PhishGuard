@@ -1,0 +1,6 @@
+first_name,last_name,email,role,position
+John,Doe,john.doe@hospital.com,STAFF,Registered Nurse
+Jane,Smith,jane.smith@hospital.com,ADMIN,IT Manager
+Bob,Johnson,bob.johnson@hospital.com,STAFF,Pharmacist
+Alice,Williams,alice.w@hospital.com,STAFF,Lab Technician
+Charlie,Brown,charlie.brown@hospital.com,OTHER,Administrative Assistant
