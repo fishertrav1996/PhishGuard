@@ -8,16 +8,6 @@
         <h1 class="text-3xl font-bold mb-6">Upload Employees via CSV</h1>
         <p class="text-gray-600 mb-6">Organization: <span class="font-semibold">{{ org.organization_name }}</span></p>
         
-        {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                    <div class="{% if message.tags == 'error' or message.tags == 'warning' %}bg-red-100 border-red-400 text-red-700{% else %}bg-green-100 border-green-400 text-green-700{% endif %} border px-4 py-3 rounded mb-2">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
         <!-- Instructions -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
             <h2 class="text-lg font-semibold mb-3">CSV Format Instructions</h2>
