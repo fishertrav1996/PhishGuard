@@ -131,3 +131,27 @@ def list_employees_view(req, org_id):
     employees = org.employees.all().order_by('last_name', 'first_name')
     
     return render(req, 'orgs/list_employees.html', {'org': org, 'employees': employees})
+
+
+@login_required
+def delete_employee_view(req, org_id, employee_id):
+    """View for deleting an employee from an organization"""
+    org = get_object_or_404(Organization, id=org_id)
+    employee = get_object_or_404(Employee, id=employee_id, organization=org)
+    
+    # Verify ownership
+    if org.owner != req.user:
+        messages.error(req, "You don't have permission to delete employees from this organization.")
+        return HttpResponseRedirect('/home')
+    
+    if req.method == 'DELETE':
+        employee_name = f"{employee.first_name} {employee.last_name}"
+        employee.delete()
+        messages.success(req, f"Employee {employee_name} has been deleted.")
+        
+        # For HTMX requests, trigger a page reload
+        response = HttpResponse(status=200)
+        response['HX-Redirect'] = f'/orgs/{org_id}/employees/'
+        return response
+    else:
+        return HttpResponseNotAllowed(['DELETE'])
