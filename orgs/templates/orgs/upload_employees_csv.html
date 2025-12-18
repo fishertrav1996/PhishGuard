@@ -60,7 +60,7 @@ Bob,Johnson,bob.j@example.com,STAFF,Pharmacist</pre>
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                     Upload CSV
                 </button>
-                <a href="{% url 'list_employees' org.id %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
+                <a href="{% url 'list_employees' org.uuid %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
                     Cancel
                 </a>
             </div>
@@ -68,7 +68,7 @@ Bob,Johnson,bob.j@example.com,STAFF,Pharmacist</pre>
         
         <div class="mt-8 pt-6 border-t">
             <p class="text-sm text-gray-600">
-                Or <a href="{% url 'add_employee' org.id %}" class="text-blue-600 hover:underline">add a single employee manually</a>
+                Or <a href="{% url 'add_employee' org.uuid %}" class="text-blue-600 hover:underline">add a single employee manually</a>
             </p>
         </div>
     </div>

@@ -53,9 +53,9 @@ def campaign_list(request):
 
 
 @login_required
-def campaign_detail(request, campaign_id):
+def campaign_detail(request, campaign_uuid):
     """View campaign details and statistics"""
-    campaign = get_object_or_404(Campaign, id=campaign_id)
+    campaign = get_object_or_404(Campaign, uuid=campaign_uuid)
     
     # Verify ownership
     if campaign.organization.owner != request.user:
@@ -115,7 +115,7 @@ def create_campaign(request):
             )
         
         messages.success(request, f"Campaign '{name}' created successfully!")
-        return redirect('campaigns:campaign_detail', campaign_id=campaign.id)
+        return redirect('campaigns:campaign_detail', campaign_uuid=campaign.uuid)
     
     # GET request - show form
     elif request.method == 'GET':
@@ -132,9 +132,9 @@ def create_campaign(request):
 
 
 @login_required
-def send_campaign(request, campaign_id):
+def send_campaign(request, campaign_uuid):
     """Send phishing emails for a campaign"""
-    campaign = get_object_or_404(Campaign, id=campaign_id)
+    campaign = get_object_or_404(Campaign, uuid=campaign_uuid)
     
     # Verify ownership
     if campaign.organization.owner != request.user:
@@ -185,7 +185,7 @@ def send_campaign(request, campaign_id):
         else:
             messages.error(request, "No emails were sent.")
         
-        return redirect('campaigns:campaign_detail', campaign_id=campaign.id)
+        return redirect('campaigns:campaign_detail', campaign_uuid=campaign.uuid)
     
     # GET request - show confirmation page
     elif request.method == 'GET':

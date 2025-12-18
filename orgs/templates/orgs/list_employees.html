@@ -11,11 +11,11 @@
                 <p class="text-gray-600 mt-1">{{ org.organization_name }}</p>
             </div>
             <div class="flex space-x-3">
-                <a href="{% url 'add_employee' org.id %}" 
+                <a href="{% url 'add_employee' org.uuid %}" 
                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     + Add Employee
                 </a>
-                <a href="{% url 'upload_employees_csv' org.id %}" 
+                <a href="{% url 'upload_employees_csv' org.uuid %}" 
                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                     📤 Upload CSV
                 </a>
@@ -82,7 +82,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     <button 
-                                        hx-delete="{% url 'delete_employee' org.id employee.id %}"
+                                        hx-delete="{% url 'delete_employee' org.uuid employee.id %}"
                                         hx-confirm="Are you sure you want to delete {{ employee.first_name }} {{ employee.last_name }}?"
                                         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                                         class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm font-medium">

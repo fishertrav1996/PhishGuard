@@ -58,7 +58,7 @@
                         </label>
                         {% endfor %}
                     {% else %}
-                        <p class="text-warning">No employees in your organization. <a href="{% url 'add_employee' organization.id %}" class="link">Add employees first</a>.</p>
+                        <p class="text-warning">No employees in your organization. <a href="{% url 'add_employee' organization.uuid %}" class="link">Add employees first</a>.</p>
                     {% endif %}
                 </div>
             </div>

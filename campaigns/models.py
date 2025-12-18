@@ -46,6 +46,7 @@ class EmailTemplate(models.Model):
 class Campaign(models.Model):
     """Phishing simulation campaign"""
     
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     organization = models.ForeignKey(
         Organization,
         on_delete=models.CASCADE,

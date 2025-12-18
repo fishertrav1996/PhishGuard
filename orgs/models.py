@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+import uuid
 
 # List for healthcare oganization types
 HEALTHCARE_ORG_TYPES = [
@@ -24,6 +25,7 @@ EMPLOYEE_ROLE_TYPES = [
 
 class Organization(models.Model):
     # Model fields
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     organization_name = models.CharField(max_length=100)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
