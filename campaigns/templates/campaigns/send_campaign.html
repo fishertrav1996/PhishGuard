@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Send Campaign{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h1 class="text-3xl font-bold mb-6">Send Phishing Campaign</h1>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">{{ campaign.name }}</h2>
+            
+            <div class="alert alert-warning my-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                    <h3 class="font-bold">Ready to Send</h3>
+                    <div class="text-sm">You are about to send phishing simulation emails to <strong>{{ pending_count }} employees</strong>.</div>
+                </div>
+            </div>
+
+            {% if campaign.email_template %}
+            <div class="my-4">
+                <h3 class="font-semibold mb-2">Email Details:</h3>
+                <ul class="list-disc list-inside space-y-1 text-sm">
+                    <li><strong>Subject:</strong> {{ campaign.email_template.subject_line }}</li>
+                    <li><strong>From:</strong> {{ campaign.email_template.sender_name }} &lt;{{ campaign.email_template.sender_email }}&gt;</li>
+                    <li><strong>Template:</strong> {{ campaign.email_template.name }}</li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="alert alert-info my-4">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Each employee will receive a unique tracking link. Clicks will be recorded automatically.</span>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="card-actions justify-end mt-6">
+                    <a href="{% url 'campaigns:campaign_detail' campaign.uuid %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Send {{ pending_count }} Email{{ pending_count|pluralize }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

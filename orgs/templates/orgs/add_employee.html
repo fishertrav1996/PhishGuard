@@ -37,7 +37,7 @@
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
                     Add Employee
                 </button>
-                <a href="{% url 'list_employees' org.id %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
+                <a href="{% url 'list_employees' org.uuid %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
                     Cancel
                 </a>
             </div>
@@ -45,7 +45,7 @@
         
         <div class="mt-8 pt-6 border-t">
             <p class="text-sm text-gray-600">
-                Or <a href="{% url 'upload_employees_csv' org.id %}" class="text-blue-600 hover:underline">upload multiple employees via CSV</a>
+                Or <a href="{% url 'upload_employees_csv' org.uuid %}" class="text-blue-600 hover:underline">upload multiple employees via CSV</a>
             </p>
         </div>
     </div>

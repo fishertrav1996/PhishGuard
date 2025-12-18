@@ -44,10 +44,10 @@ def new_org_view(req):
 
 
 @login_required
-def add_employee_view(req, org_id):
+def add_employee_view(req, org_uuid):
     """View for adding a single employee to an organization"""
     # Get the organization and verify ownership
-    org = get_object_or_404(Organization, id=org_id)
+    org = get_object_or_404(Organization, uuid=org_uuid)
     
     if org.owner != req.user:
         messages.error(req, "You don't have permission to add employees to this organization.")
@@ -61,7 +61,7 @@ def add_employee_view(req, org_id):
                 employee.organization = org
                 employee.save()
                 messages.success(req, f"Employee {employee.first_name} {employee.last_name} added successfully.")
-                return HttpResponseRedirect(f'/orgs/{org_id}/employees/')
+                return HttpResponseRedirect(f'/orgs/{org.uuid}/employees/')
             except IntegrityError:
                 messages.error(req, "An employee with this email already exists.")
                 return render(req, "orgs/add_employee.html", {"form": form, "org": org})
@@ -77,10 +77,10 @@ def add_employee_view(req, org_id):
 
 
 @login_required
-def upload_employees_csv_view(req, org_id):
+def upload_employees_csv_view(req, org_uuid):
     """View for uploading multiple employees via CSV"""
     # Get the organization and verify ownership
-    org = get_object_or_404(Organization, id=org_id)
+    org = get_object_or_404(Organization, uuid=org_uuid)
     
     if org.owner != req.user:
         messages.error(req, "You don't have permission to add employees to this organization.")
@@ -107,7 +107,7 @@ def upload_employees_csv_view(req, org_id):
                     messages.warning(req, f"Skipped {employee.email} - email already exists.")
             
             messages.success(req, f"Successfully added {saved_count} employee(s).")
-            return HttpResponseRedirect(f'/orgs/{org_id}/employees/')
+            return HttpResponseRedirect(f'/orgs/{org.uuid}/employees/')
         else:
             messages.error(req, "Please correct the errors below.")
             return render(req, "orgs/upload_employees_csv.html", {"form": form, "org": org})
@@ -120,9 +120,9 @@ def upload_employees_csv_view(req, org_id):
 
 
 @login_required
-def list_employees_view(req, org_id):
+def list_employees_view(req, org_uuid):
     """View for listing all employees in an organization"""
-    org = get_object_or_404(Organization, id=org_id)
+    org = get_object_or_404(Organization, uuid=org_uuid)
     
     if org.owner != req.user:
         messages.error(req, "You don't have permission to view this organization's employees.")
@@ -134,9 +134,9 @@ def list_employees_view(req, org_id):
 
 
 @login_required
-def delete_employee_view(req, org_id, employee_id):
+def delete_employee_view(req, org_uuid, employee_id):
     """View for deleting an employee from an organization"""
-    org = get_object_or_404(Organization, id=org_id)
+    org = get_object_or_404(Organization, uuid=org_uuid)
     employee = get_object_or_404(Employee, id=employee_id, organization=org)
     
     # Verify ownership
@@ -151,7 +151,7 @@ def delete_employee_view(req, org_id, employee_id):
         
         # For HTMX requests, trigger a page reload
         response = HttpResponse(status=200)
-        response['HX-Redirect'] = f'/orgs/{org_id}/employees/'
+        response['HX-Redirect'] = f'/orgs/{org.uuid}/employees/'
         return response
     else:
         return HttpResponseNotAllowed(['DELETE'])
