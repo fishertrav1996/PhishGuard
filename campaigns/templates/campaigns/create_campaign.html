@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Create Campaign{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-3xl font-bold mb-6">Create Phishing Campaign</h1>
+
+    <form method="post" class="card bg-base-100 shadow-xl">
+        {% csrf_token %}
+        <div class="card-body">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Campaign Name</span>
+                </label>
+                <input type="text" name="name" required class="input input-bordered" placeholder="Q4 2025 Security Training">
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Description</span>
+                </label>
+                <textarea name="description" class="textarea textarea-bordered" rows="3" placeholder="Optional description of this campaign"></textarea>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Email Template</span>
+                </label>
+                <select name="email_template" required class="select select-bordered">
+                    <option value="">Select a template</option>
+                    {% for template in templates %}
+                        <option value="{{ template.id }}">{{ template.name }} ({{ template.get_difficulty_level_display }})</option>
+                    {% endfor %}
+                </select>
+                {% if not templates %}
+                <label class="label">
+                    <span class="label-text-alt text-warning">No templates available. Create one in the admin panel first.</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Select Employees</span>
+                </label>
+                <div class="border rounded-lg p-4 max-h-64 overflow-y-auto">
+                    {% if employees %}
+                        <label class="cursor-pointer flex items-center gap-2 mb-2">
+                            <input type="checkbox" id="select-all" class="checkbox checkbox-primary">
+                            <span class="font-semibold">Select All</span>
+                        </label>
+                        <div class="divider my-2"></div>
+                        {% for employee in employees %}
+                        <label class="cursor-pointer flex items-center gap-2 mb-2">
+                            <input type="checkbox" name="employees" value="{{ employee.id }}" class="checkbox checkbox-sm employee-checkbox">
+                            <span>{{ employee.first_name }} {{ employee.last_name }} ({{ employee.email }})</span>
+                        </label>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-warning">No employees in your organization. <a href="{% url 'add_employee' organization.id %}" class="link">Add employees first</a>.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-actions justify-end mt-4">
+                <a href="{% url 'campaigns:campaign_list' %}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary" {% if not templates or not employees %}disabled{% endif %}>
+                    Create Campaign
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Select all checkbox functionality
+    document.getElementById('select-all')?.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.employee-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+</script>
+{% endblock %}

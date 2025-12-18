@@ -54,6 +54,7 @@
                     <a href="{% url 'FAQ' %}" class="text-gray-700 hover:text-blue-900 transition">FAQ</a>
 
                     {% if user.is_authenticated %}
+                        <a href="{% url 'campaigns:campaign_list' %}" class="text-gray-700 hover:text-blue-900 transition">Campaigns</a>
                         <a href="{% url 'new_org' %}" class="text-gray-700 hover:text-blue-900 transition font-semibold">+ New Organization</a>
                         
                         <span class="text-gray-600">Hi, <span class="font-semibold">{{ user.username }}</span>!</span>

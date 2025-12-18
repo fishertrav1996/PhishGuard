@@ -1,0 +1,78 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Phishing Simulation Revealed{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <div class="card bg-warning shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-3xl mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                This Was a Phishing Simulation
+            </h2>
+            
+            <div class="space-y-4">
+                <p class="text-lg">
+                    <strong>Hello {% if employee_name %}{{ employee_name }}{% else %}there{% endif %},</strong>
+                </p>
+                
+                <p>
+                    You just clicked on a link in a <strong>simulated phishing email</strong> as part of the 
+                    <span class="font-semibold">{{ campaign_name }}</span> security awareness campaign.
+                </p>
+                
+                <div class="alert alert-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span><strong>Don't worry!</strong> This was not a real phishing attack. No harm was done.</span>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <h3 class="text-xl font-bold">What is Phishing?</h3>
+                <p>
+                    Phishing is a cyber attack where criminals send fraudulent emails that appear to come from 
+                    legitimate sources. The goal is to trick you into clicking malicious links, downloading 
+                    harmful attachments, or revealing sensitive information like passwords or credit card numbers.
+                </p>
+                
+                <h3 class="text-xl font-bold mt-6">How to Spot Phishing Emails</h3>
+                <ul class="list-disc list-inside space-y-2">
+                    <li><strong>Check the sender's email address</strong> - Hover over the sender name to see the actual email address. Phishers often use addresses that look similar to legitimate ones.</li>
+                    <li><strong>Look for urgency or threats</strong> - Phishing emails often create a sense of urgency ("Your account will be suspended!") to pressure you into acting quickly.</li>
+                    <li><strong>Hover over links before clicking</strong> - Before clicking any link, hover your mouse over it to see the actual URL. Does it match the supposed sender?</li>
+                    <li><strong>Watch for spelling and grammar errors</strong> - Professional organizations proofread their emails. Multiple errors can be a red flag.</li>
+                    <li><strong>Be wary of unexpected attachments</strong> - Don't open attachments from unknown senders or unexpected emails.</li>
+                    <li><strong>Verify requests for sensitive information</strong> - Legitimate companies won't ask for passwords or sensitive data via email.</li>
+                </ul>
+                
+                <h3 class="text-xl font-bold mt-6">What Should You Do?</h3>
+                <div class="alert alert-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <p class="font-bold">If you receive a suspicious email:</p>
+                        <ul class="list-disc list-inside mt-2">
+                            <li>Don't click any links or download attachments</li>
+                            <li>Report it to your IT or security team</li>
+                            <li>Delete the email</li>
+                            <li>If you've already clicked, change your passwords immediately and notify IT</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <p class="text-sm text-gray-600">
+                        This simulation helps improve your organization's security awareness. 
+                        Thank you for participating in this training exercise.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

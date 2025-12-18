@@ -1,0 +1,128 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ campaign.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-4">
+        <a href="{% url 'campaigns:campaign_list' %}" class="btn btn-ghost btn-sm">
+            ← Back to Campaigns
+        </a>
+    </div>
+
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <h1 class="text-3xl font-bold">{{ campaign.name }}</h1>
+            <p class="text-gray-600 mt-2">{{ campaign.description }}</p>
+            <div class="flex gap-2 mt-2">
+                <span class="badge badge-lg badge-{{ campaign.status|lower }}">{{ campaign.get_status_display }}</span>
+                <span class="badge badge-lg">Created: {{ campaign.created_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        {% if campaign.status == 'DRAFT' %}
+        <a href="{% url 'campaigns:send_campaign' campaign.id %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Send Campaign
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-title">Total Targets</div>
+            <div class="stat-value text-primary">{{ total_targets }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-title">Emails Sent</div>
+            <div class="stat-value text-info">{{ sent_count }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-title">Links Clicked</div>
+            <div class="stat-value text-warning">{{ clicked_count }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-title">Click Rate</div>
+            <div class="stat-value text-error">{{ click_rate|floatformat:1 }}%</div>
+        </div>
+    </div>
+
+    <!-- Email Template Info -->
+    {% if campaign.email_template %}
+    <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+            <h2 class="card-title">Email Template</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="font-semibold">Template Name:</p>
+                    <p>{{ campaign.email_template.name }}</p>
+                </div>
+                <div>
+                    <p class="font-semibold">Difficulty:</p>
+                    <p>{{ campaign.email_template.get_difficulty_level_display }}</p>
+                </div>
+                <div>
+                    <p class="font-semibold">Subject Line:</p>
+                    <p>{{ campaign.email_template.subject_line }}</p>
+                </div>
+                <div>
+                    <p class="font-semibold">Sender:</p>
+                    <p>{{ campaign.email_template.sender_name }} &lt;{{ campaign.email_template.sender_email }}&gt;</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Targets Table -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Campaign Targets</h2>
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Sent At</th>
+                            <th>Clicked At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for target in targets %}
+                        <tr>
+                            <td>{{ target.employee.first_name }} {{ target.employee.last_name }}</td>
+                            <td>{{ target.employee.email }}</td>
+                            <td>
+                                <span class="badge badge-sm 
+                                    {% if target.status == 'CLICKED' %}badge-error
+                                    {% elif target.status == 'SENT' %}badge-info
+                                    {% elif target.status == 'PENDING' %}badge-ghost
+                                    {% endif %}">
+                                    {{ target.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ target.sent_at|date:"M d, Y H:i"|default:"—" }}</td>
+                            <td>
+                                {% if target.link_clicked_at %}
+                                    <span class="text-error font-semibold">{{ target.link_clicked_at|date:"M d, Y H:i" }}</span>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-gray-500">No targets for this campaign</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
