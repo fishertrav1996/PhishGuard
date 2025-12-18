@@ -6,8 +6,8 @@
 
 ```bash
 # In your terminal:
-export EMAIL_HOST_USER='fishertrav@gmail.com'
-export EMAIL_HOST_PASSWORD='ktwduhlefybbeltu'
+export EMAIL_HOST_USER='email'
+export EMAIL_HOST_PASSWORD='pass'
 ```
 
 ### Step 2: Create Sample Email Templates
