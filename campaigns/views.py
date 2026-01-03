@@ -8,6 +8,11 @@ from django.conf import settings
 from django.contrib import messages
 from .models import CampaignTarget, Campaign, EmailTemplate
 from orgs.models import Organization, Employee
+from orgs.permissions import (
+    get_user_organizations,
+    require_campaign_access,
+    user_can_manage_campaigns
+)
 
 # Constants for email status choices
 EMAIL_STATUS_CHOICES = ['SENT', 'OPENED', 'CLICKED', 'REPORTED']
@@ -39,28 +44,31 @@ def track_click(request, token):
 
 @login_required
 def campaign_list(request):
-    """List all campaigns for user's organization"""
-    try:
-        organization = Organization.objects.get(owner=request.user)
-        campaigns = Campaign.objects.filter(organization=organization)
-        return render(request, 'campaigns/campaign_list.html', {
-            'campaigns': campaigns,
-            'organization': organization,
-        })
-    except Organization.DoesNotExist:
-        messages.error(request, "You must create an organization first.")
+    """List all campaigns for user's organizations"""
+    # Get all organizations user belongs to
+    user_orgs = get_user_organizations(request.user)
+    
+    if not user_orgs.exists():
+        messages.error(request, "You must create or join an organization first.")
         return redirect('new_org')
+    
+    # Get campaigns from all user's organizations
+    campaigns = Campaign.objects.filter(
+        organization__in=user_orgs
+    ).select_related('organization', 'email_template', 'created_by')
+    
+    return render(request, 'campaigns/campaign_list.html', {
+        'campaigns': campaigns,
+        'user_organizations': user_orgs,
+    })
 
 
 @login_required
+@require_campaign_access
 def campaign_detail(request, campaign_uuid):
     """View campaign details and statistics"""
-    campaign = get_object_or_404(Campaign, uuid=campaign_uuid)
-    
-    # Verify ownership
-    if campaign.organization.owner != request.user:
-        messages.error(request, "You don't have permission to view this campaign.")
-        return redirect('campaigns:campaign_list')
+    # campaign, organization, and org_membership added by decorator
+    campaign = request.campaign
     
     # Get statistics
     targets = campaign.targets.all()
@@ -77,18 +85,31 @@ def campaign_detail(request, campaign_uuid):
         'sent_count': sent_count,
         'clicked_count': clicked_count,
         'click_rate': click_rate,
+        'user_membership': request.org_membership,
     })
 
 
 @login_required
 def create_campaign(request):
     """Create a new phishing campaign"""
-    try:
-        #TODO need to account for multiple orgs per user
-        organization = Organization.objects.get(owner=request.user)
-    except Organization.DoesNotExist:
-        messages.error(request, "You must create an organization first.")
+    # Get user's organizations where they can manage campaigns
+    user_orgs = get_user_organizations(request.user)
+    
+    if not user_orgs.exists():
+        messages.error(request, "You must create or join an organization first.")
         return redirect('new_org')
+    
+    # For now, use first org or get from query param
+    org_id = request.GET.get('org_id') or request.POST.get('org_id')
+    if org_id:
+        organization = get_object_or_404(Organization, id=org_id, id__in=user_orgs.values_list('id', flat=True))
+    else:
+        organization = user_orgs.first()
+    
+    # Check if user can manage campaigns for this org
+    if not user_can_manage_campaigns(request.user, organization):
+        messages.error(request, "You don't have permission to create campaigns for this organization.")
+        return redirect('campaigns:campaign_list')
     
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -126,19 +147,21 @@ def create_campaign(request):
             'templates': templates,
             'employees': employees,
             'organization': organization,
+            'user_organizations': user_orgs,
         })
     else:
         return HttpResponse("Method not allowed", status=405)
 
 
 @login_required
+@require_campaign_access
 def send_campaign(request, campaign_uuid):
     """Send phishing emails for a campaign"""
-    campaign = get_object_or_404(Campaign, uuid=campaign_uuid)
+    campaign = request.campaign
     
-    # Verify ownership
-    if campaign.organization.owner != request.user:
-        messages.error(request, "You don't have permission to send this campaign.")
+    # Verify user can manage campaigns
+    if not request.org_membership.can_manage_campaigns():
+        messages.error(request, "You don't have permission to send campaigns.")
         return redirect('campaigns:campaign_list')
     
     if request.method == 'POST':

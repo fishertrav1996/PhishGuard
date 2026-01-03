@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from .models import Organization, Employee
+from .models import Organization, Employee, OrganizationMembership
 from django.http import HttpResponseNotAllowed, HttpResponseRedirect
 from django.contrib import messages
 from django.db import IntegrityError
 
 from .forms import NewOrgForm, EmployeeForm, EmployeeCSVUploadForm
+from .permissions import require_org_membership, get_user_membership
 
 # Eventually add group permission decorator here to restrict access to owners only
 @login_required
@@ -19,14 +20,19 @@ def new_org_view(req):
             # Create the organization without saving to DB yet
             org = form.save(commit=False)
             
-            # Set the owner to the current user
-            org.owner = req.user
-            
             # Set subscription_is_active based on subscription_type
             org.subscription_is_active = (form.cleaned_data['subscription_type'] == 'PREMIUM')
             
-            # Save org to DB and return success
+            # Save org to DB
             org.save()
+            
+            # Create OWNER membership for the creator
+            OrganizationMembership.objects.create(
+                organization=org,
+                user=req.user,
+                role='OWNER',
+                is_active=True
+            )
 
             messages.success(req, "Organization created successfully.")
             return HttpResponseRedirect('/home')
@@ -44,14 +50,11 @@ def new_org_view(req):
 
 
 @login_required
+@require_org_membership('OWNER', 'ADMIN')
 def add_employee_view(req, org_uuid):
     """View for adding a single employee to an organization"""
-    # Get the organization and verify ownership
-    org = get_object_or_404(Organization, uuid=org_uuid)
-    
-    if org.owner != req.user:
-        messages.error(req, "You don't have permission to add employees to this organization.")
-        return HttpResponseRedirect('/home')
+    # org and org_membership added by decorator
+    org = req.organization
     
     if req.method == 'POST':
         form = EmployeeForm(req.POST)
@@ -77,14 +80,11 @@ def add_employee_view(req, org_uuid):
 
 
 @login_required
+@require_org_membership('OWNER', 'ADMIN')
 def upload_employees_csv_view(req, org_uuid):
     """View for uploading multiple employees via CSV"""
-    # Get the organization and verify ownership
-    org = get_object_or_404(Organization, uuid=org_uuid)
-    
-    if org.owner != req.user:
-        messages.error(req, "You don't have permission to add employees to this organization.")
-        return HttpResponseRedirect('/home')
+    # org and org_membership added by decorator
+    org = req.organization
     
     if req.method == 'POST':
         form = EmployeeCSVUploadForm(req.POST, req.FILES)
@@ -120,29 +120,26 @@ def upload_employees_csv_view(req, org_uuid):
 
 
 @login_required
+@require_org_membership()  # All members can view employee list
 def list_employees_view(req, org_uuid):
     """View for listing all employees in an organization"""
-    org = get_object_or_404(Organization, uuid=org_uuid)
-    
-    if org.owner != req.user:
-        messages.error(req, "You don't have permission to view this organization's employees.")
-        return HttpResponseRedirect('/home')
+    org = req.organization
     
     employees = org.employees.all().order_by('last_name', 'first_name')
     
-    return render(req, 'orgs/list_employees.html', {'org': org, 'employees': employees})
+    return render(req, 'orgs/list_employees.html', {
+        'org': org,
+        'employees': employees,
+        'user_membership': req.org_membership,
+    })
 
 
 @login_required
+@require_org_membership('OWNER', 'ADMIN')
 def delete_employee_view(req, org_uuid, employee_id):
     """View for deleting an employee from an organization"""
-    org = get_object_or_404(Organization, uuid=org_uuid)
+    org = req.organization
     employee = get_object_or_404(Employee, id=employee_id, organization=org)
-    
-    # Verify ownership
-    if org.owner != req.user:
-        messages.error(req, "You don't have permission to delete employees from this organization.")
-        return HttpResponseRedirect('/home')
     
     if req.method == 'DELETE':
         employee_name = f"{employee.first_name} {employee.last_name}"

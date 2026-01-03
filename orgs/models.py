@@ -27,10 +27,6 @@ class Organization(models.Model):
     # Model fields
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     organization_name = models.CharField(max_length=100)
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE 
-    )
     organization_type = models.CharField(max_length=20, choices=HEALTHCARE_ORG_TYPES, default='OTHER')
     subscription_is_active = models.BooleanField(default=False)
     subscription_type = models.CharField(max_length=20, choices=SUBSCRIPTION_TYPES, default='FREE')
@@ -48,6 +44,78 @@ class Organization(models.Model):
     def __str__(self):
         return self.organization_name
     
+class OrganizationMembership(models.Model):
+    """
+    Junction table linking Users to Organizations with role-based permissions.
+    Supports multiple admins per org and users belonging to multiple orgs.
+    """
+    
+    ROLE_CHOICES = [
+        ('OWNER', 'Owner'),           # Full control + billing + delete org
+        ('ADMIN', 'Admin'),           # Campaign management + reports + settings
+        ('MEMBER', 'Member'),         # View campaigns and reports only
+        ('BILLING', 'Billing Admin'), # Subscription management only
+    ]
+    
+    organization = models.ForeignKey(
+        Organization, 
+        on_delete=models.CASCADE,
+        related_name='memberships'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='org_memberships'
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='MEMBER')
+    
+    # Invitation/audit trail
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invitations_sent'
+    )
+    invited_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['organization', 'user']
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['organization', 'role']),
+        ]
+        verbose_name = 'Organization Membership'
+        verbose_name_plural = 'Organization Memberships'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.organization.organization_name} ({self.role})"
+    
+    def can_manage_campaigns(self):
+        """Check if user can create/edit campaigns"""
+        return self.role in ['OWNER', 'ADMIN'] and self.is_active
+    
+    def can_manage_settings(self):
+        """Check if user can modify org settings"""
+        return self.role in ['OWNER', 'ADMIN'] and self.is_active
+    
+    def can_manage_billing(self):
+        """Check if user can manage subscription"""
+        return self.role in ['OWNER', 'BILLING'] and self.is_active
+    
+    def can_export_reports(self):
+        """Check if user can export compliance reports"""
+        return self.role in ['OWNER', 'ADMIN'] and self.is_active
+    
+    def is_owner(self):
+        """Check if user is the organization owner"""
+        return self.role == 'OWNER' and self.is_active
+
+
 class Employee(models.Model):
     # Model fields
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='employees')

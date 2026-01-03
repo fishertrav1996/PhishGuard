@@ -7,10 +7,13 @@ register = template.Library()
 @register.simple_tag
 def get_user_organization(user):
     """
-    Get the first organization owned by the user.
-    TODO: Update this when implementing multi-org support per user.
+    Get the first organization the user is a member of.
+    Returns the user's first organization based on membership.
     """
     try:
-        return Organization.objects.filter(owner=user).first()
+        return Organization.objects.filter(
+            memberships__user=user,
+            memberships__is_active=True
+        ).first()
     except Organization.DoesNotExist:
         return None
