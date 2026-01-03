@@ -1,5 +1,5 @@
 from django import forms
-from .models import Organization, Employee, HEALTHCARE_ORG_TYPES, SUBSCRIPTION_TYPES
+from .models import Organization, Employee, HEALTHCARE_ORG_TYPES, SUBSCRIPTION_TYPES, US_STATES
 import csv
 import io
 
@@ -11,6 +11,10 @@ class NewOrgForm(forms.ModelForm):
     subscription_type = forms.ChoiceField(
         choices=SUBSCRIPTION_TYPES,
         label='Subscription Type'
+    )
+    state_province = forms.ChoiceField(
+        choices=US_STATES,
+        label='State'
     )
 
     class Meta:
@@ -34,7 +38,7 @@ class NewOrgForm(forms.ModelForm):
             'street_address_1': 'Street Address',
             'street_address_2': 'Street Address 2 (Optional)',
             'city': 'City',
-            'state_province': 'State/Province',
+            'state_province': 'State',
             'postal_code': 'Postal Code',
             'country': 'Country',
             'subscription_type': 'Subscription Type'
