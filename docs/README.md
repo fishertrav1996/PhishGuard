@@ -4,6 +4,10 @@ This directory contains all technical documentation, architecture decisions, and
 
 ## 📚 Documentation Index
 
+### Project Planning
+- **[REVENUE_FEATURES_ROADMAP.md](REVENUE_FEATURES_ROADMAP.md)** - Complete roadmap for building revenue-ready features (Phases 1-3)
+- **[SMTP_STRATEGY.md](SMTP_STRATEGY.md)** - ⭐ **NEW** SMTP provider strategy for phishing simulation email delivery (Amazon SES recommended)
+
 ### Project Organization
 - **[PROJECT_ORGANIZATION.md](PROJECT_ORGANIZATION.md)** - Guidelines for organizing files, docs, and tests in this project
 
