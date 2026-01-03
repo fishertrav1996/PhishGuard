@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
+from email.utils import formataddr
 from .models import CampaignTarget, Campaign, EmailTemplate
 from orgs.models import Organization, Employee
 from orgs.permissions import (
@@ -32,10 +33,51 @@ def track_click(request, token):
             target.status = 'CLICKED'
             target.save()
         
+        # Assign remediation if not already assigned
+        if not target.remediation_assigned_at:
+            target.remediation_assigned_at = timezone.now()
+            target.save()
+        
         # Redirect to educational landing page
         return render(request, 'campaigns/phishing_revealed.html', {
             'employee_name': target.employee.first_name,
             'campaign_name': target.campaign.name,
+            'tracking_token': token,
+            'remediation_completed': target.remediation_completed_at is not None,
+            'remediation_completed_at': target.remediation_completed_at,
+        })
+        
+    except CampaignTarget.DoesNotExist:
+        return HttpResponse("Invalid tracking link", status=404)
+
+
+@csrf_exempt  # Training completion doesn't require authentication
+def complete_remediation(request, token):
+    """
+    Mark remediation training as complete when employee acknowledges training.
+    """
+    if request.method != 'POST':
+        return HttpResponse("Method not allowed", status=405)
+    
+    try:
+        target = get_object_or_404(CampaignTarget, unique_tracking_token=token)
+        
+        # Verify acknowledgment checkbox was checked
+        if not request.POST.get('acknowledgment'):
+            return HttpResponse("Acknowledgment is required", status=400)
+        
+        # Mark remediation as complete if not already done
+        if not target.remediation_completed_at:
+            target.remediation_completed_at = timezone.now()
+            target.save()
+        
+        # Redirect back to phishing revealed page with success message
+        return render(request, 'campaigns/phishing_revealed.html', {
+            'employee_name': target.employee.first_name,
+            'campaign_name': target.campaign.name,
+            'tracking_token': token,
+            'remediation_completed': True,
+            'remediation_completed_at': target.remediation_completed_at,
         })
         
     except CampaignTarget.DoesNotExist:
@@ -76,7 +118,18 @@ def campaign_detail(request, campaign_uuid):
     sent_count = targets.filter(status__in=EMAIL_STATUS_CHOICES).count()
     clicked_count = targets.filter(status='CLICKED').count()
     
+    # Calculate remediation statistics
+    remediation_assigned_count = targets.filter(remediation_assigned_at__isnull=False).count()
+    remediation_completed_count = targets.filter(remediation_completed_at__isnull=False).count()
+    remediation_pending_count = targets.filter(
+        remediation_assigned_at__isnull=False,
+        remediation_completed_at__isnull=True
+    ).count()
+    
+    # Calculate percentages
     click_rate = calculate_click_rate(clicked_count, sent_count)
+    remediation_assigned_percentage = (remediation_assigned_count / clicked_count * 100) if clicked_count > 0 else 0
+    remediation_completion_rate = (remediation_completed_count / remediation_assigned_count * 100) if remediation_assigned_count > 0 else 0
     
     return render(request, 'campaigns/campaign_detail.html', {
         'campaign': campaign,
@@ -85,6 +138,11 @@ def campaign_detail(request, campaign_uuid):
         'sent_count': sent_count,
         'clicked_count': clicked_count,
         'click_rate': click_rate,
+        'remediation_assigned_count': remediation_assigned_count,
+        'remediation_completed_count': remediation_completed_count,
+        'remediation_pending_count': remediation_pending_count,
+        'remediation_assigned_percentage': remediation_assigned_percentage,
+        'remediation_completion_rate': remediation_completion_rate,
         'user_membership': request.org_membership,
     })
 
@@ -181,12 +239,18 @@ def send_campaign(request, campaign_uuid):
                     tracking_url
                 )
                 
+                # Properly format sender with name (handles commas and special chars)
+                from_email = formataddr((
+                    campaign.email_template.sender_name,
+                    settings.DEFAULT_FROM_EMAIL
+                ))
+                
                 # Send email
                 send_mail(
                     subject=campaign.email_template.subject_line,
                     message='',  # Plain text version
                     html_message=email_body,
-                    from_email=f"{campaign.email_template.sender_name} <{settings.DEFAULT_FROM_EMAIL}>",
+                    from_email=from_email,
                     recipient_list=[target.employee.email],
                     fail_silently=False,
                 )

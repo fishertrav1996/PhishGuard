@@ -48,6 +48,25 @@
             <div class="stat-value text-error">{{ click_rate|floatformat:1 }}%</div>
         </div>
     </div>
+    
+    <!-- Remediation Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-title">Remediation Assigned</div>
+            <div class="stat-value text-warning">{{ remediation_assigned_count }}</div>
+            <div class="stat-desc">{{ remediation_assigned_percentage|floatformat:1 }}% of clicked</div>
+        </div>
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-title">Remediation Completed</div>
+            <div class="stat-value text-success">{{ remediation_completed_count }}</div>
+            <div class="stat-desc">{{ remediation_completion_rate|floatformat:1 }}% completion rate</div>
+        </div>
+        <div class="stat bg-base-100 shadow rounded-lg">
+            <div class="stat-title">Pending Remediation</div>
+            <div class="stat-value text-error">{{ remediation_pending_count }}</div>
+            <div class="stat-desc">Needs acknowledgment</div>
+        </div>
+    </div>
 
     <!-- Email Template Info -->
     {% if campaign.email_template %}
@@ -89,6 +108,7 @@
                             <th>Status</th>
                             <th>Sent At</th>
                             <th>Clicked At</th>
+                            <th>Remediation Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -113,10 +133,21 @@
                                     —
                                 {% endif %}
                             </td>
+                            <td>
+                                {% if target.remediation_completed_at %}
+                                    <span class="badge badge-success">Completed</span>
+                                    <br><span class="text-xs">{{ target.remediation_completed_at|date:"M d, Y" }}</span>
+                                {% elif target.remediation_assigned_at %}
+                                    <span class="badge badge-warning">Pending</span>
+                                    <br><span class="text-xs">Assigned {{ target.remediation_assigned_at|date:"M d, Y" }}</span>
+                                {% else %}
+                                    <span class="badge badge-ghost">N/A</span>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center text-gray-500">No targets for this campaign</td>
+                            <td colspan="6" class="text-center text-gray-500">No targets for this campaign</td>
                         </tr>
                         {% endfor %}
                     </tbody>

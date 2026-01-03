@@ -94,6 +94,18 @@ class CampaignTarget(models.Model):
     link_clicked_at = models.DateTimeField(null=True, blank=True)
     reported_at = models.DateTimeField(null=True, blank=True)
     
+    # Remediation tracking
+    remediation_assigned_at = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text="When remediation training was assigned after clicking phishing link."
+    )
+    remediation_completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When employee completed remediation acknowledgment."
+    )
+    
     status = models.CharField(max_length=20, choices=TARGET_STATUS_CHOICES, default='PENDING')
     
     created_at = models.DateTimeField(auto_now_add=True)
