@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quarterly Compliance Report - {{ organization.organization_name }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.75in;
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2563eb;
+        }
+        
+        .header h1 {
+            font-size: 24pt;
+            color: #1e40af;
+            margin: 0 0 10px 0;
+        }
+        
+        .header .subtitle {
+            font-size: 14pt;
+            color: #64748b;
+            margin: 5px 0;
+        }
+        
+        .organization-info {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .organization-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .organization-info td {
+            padding: 5px;
+            font-size: 10pt;
+        }
+        
+        .organization-info td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+        
+        .section {
+            margin: 25px 0;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 16pt;
+            color: #1e40af;
+            border-bottom: 2px solid #93c5fd;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background-color: #f8fafc;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .metric-label {
+            font-size: 9pt;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #1e40af;
+        }
+        
+        .metric-desc {
+            font-size: 8pt;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        
+        table.data-table th {
+            background-color: #1e40af;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        table.data-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        table.data-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        .attestation-box {
+            background-color: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .attestation-box h4 {
+            color: #92400e;
+            margin: 0 0 10px 0;
+            font-size: 12pt;
+        }
+        
+        .attestation-box .checkbox-item {
+            margin: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .attestation-box .checkbox-item:before {
+            content: "☑";
+            position: absolute;
+            left: 0;
+            font-size: 14pt;
+            color: #16a34a;
+        }
+        
+        .disclaimer {
+            background-color: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 9pt;
+            color: #7f1d1d;
+        }
+        
+        .disclaimer strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 10pt;
+        }
+        
+        .signature-block {
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            width: 300px;
+            margin: 30px 0 5px 0;
+        }
+        
+        .signature-label {
+            font-size: 10pt;
+            color: #64748b;
+        }
+        
+        .trend-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+        
+        .trend-indicator.positive {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .trend-indicator.negative {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover Page -->
+    <div class="header">
+        <h1>{{ report_type_display }}</h1>
+        <div class="subtitle">Security Awareness Training Documentation</div>
+        <div class="subtitle">{{ period_start|date:"F j, Y" }} - {{ period_end|date:"F j, Y" }}</div>
+    </div>
+    
+    <div class="organization-info">
+        <table>
+            <tr>
+                <td>Organization:</td>
+                <td>{{ organization.organization_name }}</td>
+            </tr>
+            <tr>
+                <td>Address:</td>
+                <td>{{ organization.address }}, {{ organization.city }}, {{ organization.state_province }} {{ organization.postal_code }}</td>
+            </tr>
+            <tr>
+                <td>Report Generated:</td>
+                <td>{{ report_date|date:"F j, Y \a\t g:i A" }}</td>
+            </tr>
+            <tr>
+                <td>Generated By:</td>
+                <td>{{ generated_by.get_full_name|default:generated_by.username }}</td>
+            </tr>
+            <tr>
+                <td>Report Period:</td>
+                <td>{{ period_start|date:"F j, Y" }} through {{ period_end|date:"F j, Y" }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Executive Summary -->
+    <div class="section">
+        <h2 class="section-title">Executive Summary</h2>
+        <p>
+            This compliance report documents {{ organization.organization_name }}'s security awareness
+            training program for the period from {{ period_start|date:"F j, Y" }} to {{ period_end|date:"F j, Y" }}.
+            The organization conducted {{ total_campaigns }} phishing simulation campaign{% if total_campaigns != 1 %}s{% endif %}
+            involving {{ total_employees_trained }} employee{% if total_employees_trained != 1 %}s{% endif %}.
+        </p>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Campaigns Conducted</div>
+                <div class="metric-value">{{ total_campaigns }}</div>
+                <div class="metric-desc">Simulation exercises</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Employees Trained</div>
+                <div class="metric-value">{{ total_employees_trained }}</div>
+                <div class="metric-desc">Unique participants</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Overall Click Rate</div>
+                <div class="metric-value">{{ overall_click_rate }}%</div>
+                <div class="metric-desc">Vulnerability rate</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Remediation Rate</div>
+                <div class="metric-value">{{ remediation_completion_rate }}%</div>
+                <div class="metric-desc">Training completed</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="page-break"></div>
+    
+    <!-- Campaign Details -->
+    <div class="section">
+        <h2 class="section-title">Campaign Details</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Campaign Name</th>
+                    <th>Date</th>
+                    <th>Targets</th>
+                    <th>Sent</th>
+                    <th>Clicked</th>
+                    <th>Click Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for campaign in campaigns %}
+                <tr>
+                    <td>{{ campaign.name }}</td>
+                    <td>{{ campaign.created_at|date:"M d, Y" }}</td>
+                    <td style="text-align: center;">{{ campaign.total_targets }}</td>
+                    <td style="text-align: center;">{{ campaign.sent_count }}</td>
+                    <td style="text-align: center;">{{ campaign.clicked_count }}</td>
+                    <td style="text-align: center;">{{ campaign.click_rate|floatformat:1 }}%</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #94a3b8;">No campaigns in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Remediation Tracking -->
+    <div class="section">
+        <h2 class="section-title">Remediation Training</h2>
+        <p>
+            Employees who clicked on simulated phishing links were automatically assigned remediation training.
+            This section documents the corrective action taken to address identified vulnerabilities.
+        </p>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Employees Who Clicked Links</td>
+                    <td style="text-align: center;">{{ total_clicked }}</td>
+                    <td style="text-align: center;">{{ overall_click_rate }}%</td>
+                </tr>
+                <tr>
+                    <td>Remediation Training Assigned</td>
+                    <td style="text-align: center;">{{ remediation_assigned }}</td>
+                    <td style="text-align: center;">{{ remediation_assigned_pct }}%</td>
+                </tr>
+                <tr>
+                    <td>Remediation Training Completed</td>
+                    <td style="text-align: center;">{{ remediation_completed }}</td>
+                    <td style="text-align: center;">{{ remediation_completion_rate }}%</td>
+                </tr>
+                <tr>
+                    <td>Remediation Pending</td>
+                    <td style="text-align: center;">{{ remediation_pending }}</td>
+                    <td style="text-align: center;">{{ remediation_pending_pct }}%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="page-break"></div>
+    
+    <!-- Compliance Attestations -->
+    <div class="section">
+        <h2 class="section-title">Compliance Attestations</h2>
+        
+        {% if 'HIPAA' in frameworks %}
+        <div class="attestation-box">
+            <h4>HIPAA Security Rule § 164.308(a)(5) - Security Awareness and Training</h4>
+            <p>
+                {{ organization.organization_name }} has implemented a security awareness and training program 
+                for all workforce members as required by 45 CFR § 164.308(a)(5).
+            </p>
+            <div class="checkbox-item">Training program established and documented</div>
+            <div class="checkbox-item">All workforce members received training during this period</div>
+            <div class="checkbox-item">Training includes protection from malicious software (phishing)</div>
+            <div class="checkbox-item">Ongoing training provided (not one-time)</div>
+            <div class="checkbox-item">Remediation provided for employees who demonstrated vulnerabilities</div>
+            <p style="margin-top: 10px; font-size: 10pt;">
+                <strong>Training Frequency:</strong> {{ training_frequency }}<br>
+                <strong>Completion Rate:</strong> {{ remediation_completion_rate }}%
+            </p>
+        </div>
+        {% endif %}
+        
+        {% if 'HITECH' in frameworks %}
+        <div class="attestation-box">
+            <h4>HITECH Act - Reasonable Safeguards</h4>
+            <p>
+                {{ organization.organization_name }} has implemented reasonable safeguards to protect electronic 
+                protected health information (ePHI) through ongoing security awareness training and phishing 
+                simulation exercises as required by the HITECH Act.
+            </p>
+            <div class="checkbox-item">Reasonable safeguards implemented to protect ePHI</div>
+            <div class="checkbox-item">Training program demonstrates proactive risk mitigation</div>
+            <div class="checkbox-item">Security culture evidenced by declining click rates</div>
+            <p style="margin-top: 10px; font-size: 10pt;">
+                This training program demonstrates our commitment to preventing unauthorized access to ePHI 
+                and reducing the risk of data breaches subject to HITECH breach notification requirements.
+            </p>
+        </div>
+        {% endif %}
+        
+        {% if 'HITRUST' in frameworks %}
+        <div class="attestation-box">
+            <h4>HITRUST CSF Control 02.g - Security Awareness Training</h4>
+            <p>
+                {{ organization.organization_name }} has implemented security awareness training that meets 
+                HITRUST CSF Control 02.g requirements:
+            </p>
+            <div class="checkbox-item">All personnel have received appropriate security awareness training relevant to their job function</div>
+            <div class="checkbox-item">Training is updated regularly to address new and emerging threats</div>
+            <div class="checkbox-item">Training effectiveness is measured and monitored through quantitative metrics</div>
+            <div class="checkbox-item">Remediation is provided to personnel who demonstrate vulnerabilities</div>
+            <p style="margin-top: 10px; font-size: 10pt;">
+                <strong>Current Period Click Rate:</strong> {{ overall_click_rate }}%<br>
+                <strong>Training Completion Rate:</strong> {{ remediation_completion_rate }}%
+            </p>
+        </div>
+        {% endif %}
+        
+        <div class="page-break"></div>
+        
+        {% if 'NIST' in frameworks %}
+        <div class="attestation-box">
+            <h4>NIST Cybersecurity Framework PR.AT-1 - Awareness and Training</h4>
+            <p>
+                {{ organization.organization_name }}'s security awareness training program aligns with 
+                NIST Cybersecurity Framework Category PR.AT-1:
+            </p>
+            <div class="checkbox-item"><strong>Identify:</strong> Risk assessment through {{ total_campaigns }} simulated phishing exercise{% if total_campaigns != 1 %}s{% endif %}</div>
+            <div class="checkbox-item"><strong>Protect:</strong> Training provided to {{ total_employees_trained }} employee{% if total_employees_trained != 1 %}s{% endif %}</div>
+            <div class="checkbox-item"><strong>Detect:</strong> Click rate monitoring identifies vulnerable employees</div>
+            <div class="checkbox-item"><strong>Respond:</strong> Remediation workflows for {{ remediation_assigned }} vulnerable employee{% if remediation_assigned != 1 %}s{% endif %}</div>
+            <div class="checkbox-item"><strong>Recover:</strong> {{ remediation_completed }} employee{% if remediation_completed != 1 %}s{% endif %} completed remediation training</div>
+            <p style="margin-top: 10px; font-size: 10pt;">
+                This alignment supports our cyber insurance requirements and demonstrates reasonable 
+                security controls to regulatory authorities.
+            </p>
+        </div>
+        {% endif %}
+        
+        {% if 'STATE_LAWS' in frameworks %}
+        <div class="attestation-box">
+            <h4>State Breach Notification Laws - Reasonable Security Measures</h4>
+            <p>
+                {{ organization.organization_name }} has implemented reasonable security measures as required 
+                by applicable state breach notification laws:
+            </p>
+            <div class="checkbox-item"><strong>California CMIA (Civil Code §56.101):</strong> Reasonable security procedures and practices implemented through ongoing employee training</div>
+            <div class="checkbox-item"><strong>New York SHIELD Act (GBL §899-bb):</strong> Security awareness training provided as part of comprehensive data security program</div>
+            <div class="checkbox-item"><strong>Texas HB 300 (Health & Safety Code §181.101):</strong> Employee training program established to protect electronic health information</div>
+            <div class="checkbox-item"><strong>Massachusetts 201 CMR 17.00:</strong> Security awareness training included in written information security program (WISP)</div>
+            <p style="margin-top: 10px; font-size: 10pt;">
+                These proactive security measures demonstrate our commitment to protecting personal information 
+                and reducing breach notification obligations under state law.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Legal Disclaimer -->
+    <div class="disclaimer">
+        <strong>IMPORTANT LEGAL DISCLAIMER</strong>
+        This report is provided as a tool to assist with security awareness training documentation. 
+        It does not guarantee compliance with HIPAA, HITECH, HITRUST, NIST, state laws, or any other 
+        regulatory requirements. Organizations are responsible for their own compliance programs. 
+        Consult with legal and compliance professionals regarding your specific regulatory obligations.
+        <br><br>
+        This report documents training activities conducted during the specified period but does not 
+        constitute legal advice or certification of compliance. Regulatory compliance requires a 
+        comprehensive program that extends beyond security awareness training alone.
+    </div>
+    
+    <!-- Signature Block -->
+    <div class="signature-block">
+        <p>
+            I certify that the information contained in this report is accurate and complete to the 
+            best of my knowledge.
+        </p>
+        <div class="signature-line"></div>
+        <div class="signature-label">Authorized Signature</div>
+        <br>
+        <div class="signature-line"></div>
+        <div class="signature-label">Printed Name and Title</div>
+        <br>
+        <div class="signature-line"></div>
+        <div class="signature-label">Date</div>
+    </div>
+</body>
+</html>

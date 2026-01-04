@@ -1,0 +1,114 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Compliance Reports - {{ organization.organization_name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold">Compliance Reports</h1>
+            <p class="text-gray-600 mt-2">{{ organization.organization_name }}</p>
+        </div>
+        <a href="{% url 'campaigns:generate_report' org_uuid=organization.uuid %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Generate New Report
+        </a>
+    </div>
+
+    {% if reports %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Report Type</th>
+                            <th>Period</th>
+                            <th>Frameworks</th>
+                            <th>Campaigns</th>
+                            <th>Click Rate</th>
+                            <th>Generated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>
+                                <span class="font-semibold">{{ report.get_report_type_display }}</span>
+                            </td>
+                            <td>
+                                {{ report.period_start|date:"M d, Y" }} - {{ report.period_end|date:"M d, Y" }}
+                            </td>
+                            <td>
+                                <div class="flex flex-wrap gap-1">
+                                    {% for framework in report.get_frameworks_list %}
+                                    <span class="badge badge-sm">{{ framework }}</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td class="text-center">{{ report.total_campaigns }}</td>
+                            <td class="text-center">
+                                <span class="{% if report.overall_click_rate < 20 %}text-success{% elif report.overall_click_rate < 40 %}text-warning{% else %}text-error{% endif %} font-semibold">
+                                    {{ report.overall_click_rate }}%
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-sm">
+                                    {{ report.generated_at|date:"M d, Y" }}<br>
+                                    <span class="text-gray-500">by {{ report.generated_by.get_full_name|default:report.generated_by.username }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'campaigns:download_report' report_uuid=report.uuid %}" class="btn btn-sm btn-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                    </a>
+                                    <a href="{% url 'campaigns:delete_report' report_uuid=report.uuid %}" class="btn btn-sm btn-error btn-outline">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body text-center py-16">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="text-2xl font-bold mt-4">No Compliance Reports Yet</h3>
+            <p class="text-gray-600 mt-2">Generate your first compliance report to document your security awareness training program.</p>
+            <div class="card-actions justify-center mt-6">
+                <a href="{% url 'campaigns:generate_report' org_uuid=organization.uuid %}" class="btn btn-primary">
+                    Generate Your First Report
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-download if download parameter is present
+const urlParams = new URLSearchParams(window.location.search);
+const downloadUuid = urlParams.get('download');
+if (downloadUuid) {
+    // Trigger download
+    window.location.href = `/campaigns/report/${downloadUuid}/download/`;
+    // Clean up URL without reloading
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+</script>
+{% endblock %}

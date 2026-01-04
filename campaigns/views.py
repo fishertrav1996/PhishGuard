@@ -1,13 +1,19 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed, FileResponse
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
+from django.template.loader import render_to_string
+from django.db.models import Count, Q
 from email.utils import formataddr
-from .models import CampaignTarget, Campaign, EmailTemplate
+from weasyprint import HTML
+import os
+from datetime import datetime, timedelta
+from .models import CampaignTarget, Campaign, EmailTemplate, ComplianceReport
 from orgs.models import Organization, Employee
 from orgs.permissions import (
     get_user_organizations,
@@ -290,4 +296,251 @@ def calculate_click_rate(clicked_count, sent_count):
     if sent_count == 0:
         return 0.0
     return (clicked_count / sent_count) * 100
+
+
+# ============================================================================
+# COMPLIANCE REPORTING VIEWS
+# ============================================================================
+
+@login_required
+def generate_compliance_report(request, org_uuid):
+    """Generate a quarterly compliance report for an organization"""
+    organization = get_object_or_404(Organization, uuid=org_uuid)
+    
+    # Check if user can manage this organization
+    if not user_can_manage_campaigns(request.user, organization):
+        messages.error(request, "You don't have permission to generate reports for this organization.")
+        return redirect('campaigns:campaign_list')
+    
+    if request.method == 'POST':
+        # Get form data
+        report_type = request.POST.get('report_type', 'QUARTERLY')
+        period_start = request.POST.get('period_start')
+        period_end = request.POST.get('period_end')
+        frameworks = request.POST.getlist('frameworks')
+        
+        # Validate dates
+        try:
+            period_start_date = datetime.strptime(period_start, '%Y-%m-%d').date()
+            period_end_date = datetime.strptime(period_end, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid date format. Please use YYYY-MM-DD.")
+            return redirect('campaigns:generate_report', org_uuid=org_uuid)
+        
+        # Get campaigns in period
+        campaigns = Campaign.objects.filter(
+            organization=organization,
+            created_at__date__gte=period_start_date,
+            created_at__date__lte=period_end_date
+        ).select_related('email_template')
+        
+        # Calculate statistics
+        campaign_stats = []
+        total_targets = 0
+        total_sent = 0
+        total_clicked = 0
+        remediation_assigned = 0
+        remediation_completed = 0
+        unique_employees = set()
+        
+        for campaign in campaigns:
+            targets = campaign.targets.all()
+            targets_count = targets.count()
+            sent_count = targets.filter(sent_at__isnull=False).count()
+            clicked_count = targets.filter(link_clicked_at__isnull=False).count()
+            
+            campaign_stats.append({
+                'name': campaign.name,
+                'created_at': campaign.created_at,
+                'total_targets': targets_count,
+                'sent_count': sent_count,
+                'clicked_count': clicked_count,
+                'click_rate': calculate_click_rate(clicked_count, sent_count)
+            })
+            
+            total_targets += targets_count
+            total_sent += sent_count
+            total_clicked += clicked_count
+            
+            # Track unique employees
+            for target in targets:
+                unique_employees.add(target.employee_id)
+                if target.remediation_assigned_at:
+                    remediation_assigned += 1
+                if target.remediation_completed_at:
+                    remediation_completed += 1
+        
+        # Calculate overall rates
+        overall_click_rate = calculate_click_rate(total_clicked, total_sent)
+        remediation_completion_rate = calculate_click_rate(remediation_completed, remediation_assigned)
+        remediation_assigned_pct = calculate_click_rate(remediation_assigned, total_clicked)
+        remediation_pending = remediation_assigned - remediation_completed
+        remediation_pending_pct = calculate_click_rate(remediation_pending, remediation_assigned)
+        
+        # Prepare context for template
+        context = {
+            'organization': organization,
+            'report_type_display': dict(ComplianceReport.REPORT_TYPE_CHOICES).get(report_type),
+            'period_start': period_start_date,
+            'period_end': period_end_date,
+            'report_date': timezone.now(),
+            'generated_by': request.user,
+            'frameworks': frameworks,
+            'training_frequency': 'Quarterly',  # Can be made configurable
+            
+            # Summary metrics
+            'total_campaigns': campaigns.count(),
+            'total_employees_trained': len(unique_employees),
+            'overall_click_rate': round(overall_click_rate, 2),
+            'remediation_completion_rate': round(remediation_completion_rate, 2),
+            
+            # Campaign details
+            'campaigns': campaign_stats,
+            
+            # Remediation details
+            'total_clicked': total_clicked,
+            'remediation_assigned': remediation_assigned,
+            'remediation_completed': remediation_completed,
+            'remediation_pending': remediation_pending,
+            'remediation_assigned_pct': round(remediation_assigned_pct, 2),
+            'remediation_pending_pct': round(remediation_pending_pct, 2),
+        }
+        
+        # Render HTML template
+        html_string = render_to_string('campaigns/compliance_report_pdf.html', context)
+        
+        # Generate PDF
+        pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+        
+        # Create file storage directory
+        report_dir = os.path.join(
+            settings.MEDIA_ROOT,
+            'compliance_reports',
+            str(organization.uuid),
+            str(period_start_date.year),
+            f'Q{((period_start_date.month-1)//3)+1}'
+        )
+        os.makedirs(report_dir, exist_ok=True)
+        
+        # Save PDF file
+        filename = f'compliance_report_{period_start_date.strftime("%Y%m%d")}_{period_end_date.strftime("%Y%m%d")}.pdf'
+        file_path = os.path.join(report_dir, filename)
+        
+        with open(file_path, 'wb') as f:
+            f.write(pdf_file)
+        
+        # Create database record
+        report = ComplianceReport.objects.create(
+            organization=organization,
+            report_type=report_type,
+            period_start=period_start_date,
+            period_end=period_end_date,
+            frameworks=','.join(frameworks),
+            file_path=file_path,
+            generated_by=request.user,
+            total_campaigns=campaigns.count(),
+            total_employees_trained=len(unique_employees),
+            overall_click_rate=round(overall_click_rate, 2),
+            remediation_completion_rate=round(remediation_completion_rate, 2)
+        )
+        
+        messages.success(request, f"Compliance report generated successfully!")
+        # Redirect to list with download parameter
+        return redirect(f"{reverse('campaigns:list_reports', kwargs={'org_uuid': organization.uuid})}?download={report.uuid}")
+    
+    elif request.method == 'GET':
+        # Suggest current quarter dates
+        today = timezone.now().date()
+        quarter_start = datetime(today.year, ((today.month-1)//3)*3+1, 1).date()
+        quarter_end = today
+        
+        return render(request, 'campaigns/generate_compliance_report.html', {
+            'organization': organization,
+            'suggested_start': quarter_start,
+            'suggested_end': quarter_end,
+            'framework_choices': ComplianceReport.FRAMEWORK_CHOICES,
+        })
+    
+    else:
+        return HttpResponseNotAllowed(['GET', 'POST'])
+
+
+@login_required
+def list_compliance_reports(request, org_uuid):
+    """List all compliance reports for an organization"""
+    organization = get_object_or_404(Organization, uuid=org_uuid)
+    
+    # Check if user can view this organization's reports
+    if not user_can_manage_campaigns(request.user, organization):
+        messages.error(request, "You don't have permission to view reports for this organization.")
+        return redirect('campaigns:campaign_list')
+    
+    if request.method == 'GET':
+        reports = ComplianceReport.objects.filter(organization=organization).order_by('-generated_at')
+        
+        return render(request, 'campaigns/compliance_reports_list.html', {
+            'organization': organization,
+            'reports': reports,
+        })
+    else:
+        return HttpResponseNotAllowed(['GET'])
+
+
+@login_required
+def download_compliance_report(request, report_uuid):
+    """Download a compliance report PDF"""
+    report = get_object_or_404(ComplianceReport, uuid=report_uuid)
+    
+    # Check if user can access this report
+    if not user_can_manage_campaigns(request.user, report.organization):
+        messages.error(request, "You don't have permission to access this report.")
+        return redirect('campaigns:campaign_list')
+    
+    if request.method == 'GET':
+        # Check if file exists
+        if not os.path.exists(report.file_path):
+            messages.error(request, "Report file not found. It may have been deleted.")
+            return redirect('campaigns:list_reports', org_uuid=report.organization.uuid)
+        
+        # Serve PDF file
+        response = FileResponse(
+            open(report.file_path, 'rb'),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(report.file_path)}"'
+        return response
+    else:
+        return HttpResponseNotAllowed(['GET'])
+
+
+@login_required
+def delete_compliance_report(request, report_uuid):
+    """Delete a compliance report"""
+    report = get_object_or_404(ComplianceReport, uuid=report_uuid)
+    
+    # Check if user can delete this report
+    if not user_can_manage_campaigns(request.user, report.organization):
+        messages.error(request, "You don't have permission to delete this report.")
+        return redirect('campaigns:campaign_list')
+    
+    if request.method == 'POST':
+        org_uuid = report.organization.uuid
+        
+        # Delete file
+        if os.path.exists(report.file_path):
+            os.remove(report.file_path)
+        
+        # Delete database record
+        report.delete()
+        
+        messages.success(request, "Compliance report deleted successfully.")
+        return redirect('campaigns:list_reports', org_uuid=org_uuid)
+    
+    elif request.method == 'GET':
+        return render(request, 'campaigns/confirm_delete_report.html', {
+            'report': report,
+        })
+    
+    else:
+        return HttpResponseNotAllowed(['GET', 'POST'])
 
