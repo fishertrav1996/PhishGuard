@@ -11,10 +11,19 @@ HEALTHCARE_ORG_TYPES = [
     ('OTHER', 'Other')
 ]
 
-# List for subscription types
-SUBSCRIPTION_TYPES = [
-    ('FREE', 'Free'),
-    ('PREMIUM', 'Premium')
+# Subscription tier choices
+SUBSCRIPTION_TIER_CHOICES = [
+    ('FREE_TRIAL', 'Free Trial (1 Campaign)'),
+    ('PROFESSIONAL', 'Professional'),
+    ('ENTERPRISE', 'Enterprise'),
+]
+
+SUBSCRIPTION_STATUS_CHOICES = [
+    ('TRIAL', 'Trial'),
+    ('ACTIVE', 'Active'),
+    ('PAST_DUE', 'Past Due'),
+    ('CANCELED', 'Canceled'),
+    ('INCOMPLETE', 'Incomplete'),
 ]
 
 EMPLOYEE_ROLE_TYPES = [
@@ -84,12 +93,10 @@ US_STATES = [
 ]
 
 class Organization(models.Model):
-    # Model fields
+    # Basic organization fields
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     organization_name = models.CharField(max_length=100)
     organization_type = models.CharField(max_length=20, choices=HEALTHCARE_ORG_TYPES, default='OTHER')
-    subscription_is_active = models.BooleanField(default=False)
-    subscription_type = models.CharField(max_length=20, choices=SUBSCRIPTION_TYPES, default='FREE')
     website = models.URLField()
     street_address_1 = models.CharField(max_length=255)
     street_address_2 = models.CharField(max_length=255, blank=True, null=True)
@@ -97,12 +104,76 @@ class Organization(models.Model):
     state_province = models.CharField(max_length=100, choices=US_STATES)
     postal_code = models.CharField(max_length=20)
     country = models.CharField(max_length=100, default='United States')
+    
+    # Subscription management
+    subscription_tier = models.CharField(
+        max_length=20, 
+        choices=SUBSCRIPTION_TIER_CHOICES, 
+        default='FREE_TRIAL',
+        help_text="Current subscription tier"
+    )
+    subscription_status = models.CharField(
+        max_length=20,
+        choices=SUBSCRIPTION_STATUS_CHOICES,
+        default='TRIAL',
+        help_text="Current subscription status"
+    )
+    trial_campaigns_used = models.IntegerField(
+        default=0,
+        help_text="Number of campaigns used in free trial (max 1)"
+    )
+    
+    # Stripe integration
+    stripe_customer_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_subscription_id = models.CharField(max_length=255, blank=True, null=True)
+    
+    # Subscription dates
+    subscription_start_date = models.DateTimeField(null=True, blank=True)
+    subscription_end_date = models.DateTimeField(null=True, blank=True)
+    
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     # Model methods
     def __str__(self):
         return self.organization_name
+    
+    def can_create_campaign(self):
+        """Check if organization can create a new campaign based on subscription tier"""
+        if self.subscription_tier == 'FREE_TRIAL':
+            return self.trial_campaigns_used < 1
+        elif self.subscription_tier in ['PROFESSIONAL', 'ENTERPRISE']:
+            return self.subscription_status == 'ACTIVE'
+        return False
+    
+    def get_campaign_limit(self):
+        """Get the campaign limit for current subscription tier"""
+        if self.subscription_tier == 'FREE_TRIAL':
+            return 1
+        elif self.subscription_tier == 'PROFESSIONAL':
+            return None  # Unlimited
+        elif self.subscription_tier == 'ENTERPRISE':
+            return None  # Unlimited
+        return 0
+    
+    def get_employee_limit(self):
+        """Get the employee limit for current subscription tier"""
+        if self.subscription_tier == 'FREE_TRIAL':
+            return None  # No hard limit in trial
+        elif self.subscription_tier == 'PROFESSIONAL':
+            return 500
+        elif self.subscription_tier == 'ENTERPRISE':
+            return None  # Unlimited
+        return 0
+    
+    def is_trial_expired(self):
+        """Check if trial period is over and they've used their free campaign"""
+        return self.subscription_tier == 'FREE_TRIAL' and self.trial_campaigns_used >= 1
+    
+    def requires_upgrade(self):
+        """Check if organization needs to upgrade to continue"""
+        return self.is_trial_expired() or self.subscription_status in ['CANCELED', 'PAST_DUE']
     
 class OrganizationMembership(models.Model):
     """

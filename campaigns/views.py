@@ -100,14 +100,29 @@ def campaign_list(request):
         messages.error(request, "You must create or join an organization first.")
         return redirect('new_org')
     
-    # Get campaigns from all user's organizations
-    campaigns = Campaign.objects.filter(
-        organization__in=user_orgs
-    ).select_related('organization', 'email_template', 'created_by')
+    # For now, use first org or get from query param
+    org_id = request.GET.get('org_id')
+    if org_id:
+        organization = get_object_or_404(Organization, id=org_id, id__in=user_orgs.values_list('id', flat=True))
+    else:
+        organization = user_orgs.first()
+    
+    campaigns = Campaign.objects.filter(organization=organization).order_by('-created_at')
+    
+    # Add subscription status to context
+    can_create_campaign = organization.can_create_campaign()
+    campaigns_remaining = None
+    if organization.subscription_tier == 'FREE_TRIAL':
+        campaigns_remaining = 1 - organization.trial_campaigns_used
     
     return render(request, 'campaigns/campaign_list.html', {
         'campaigns': campaigns,
+        'organization': organization,
         'user_organizations': user_orgs,
+        'can_create_campaign': can_create_campaign,
+        'campaigns_remaining': campaigns_remaining,
+        'subscription_tier': organization.get_subscription_tier_display(),
+        'requires_upgrade': organization.requires_upgrade(),
     })
 
 
@@ -175,6 +190,18 @@ def create_campaign(request):
         messages.error(request, "You don't have permission to create campaigns for this organization.")
         return redirect('campaigns:campaign_list')
     
+    # Check if organization can create campaigns (subscription limits)
+    if not organization.can_create_campaign():
+        if organization.is_trial_expired():
+            messages.error(request, "Your free trial campaign has been used. Please upgrade to continue creating campaigns.")
+            return redirect('campaigns:campaign_list')  # TODO: Redirect to subscription page
+        elif organization.subscription_status in ['CANCELED', 'PAST_DUE']:
+            messages.error(request, "Your subscription is not active. Please update your billing information.")
+            return redirect('campaigns:campaign_list')  # TODO: Redirect to billing page
+        else:
+            messages.error(request, "You have reached your campaign limit for this subscription tier.")
+            return redirect('campaigns:campaign_list')
+    
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description', '')
@@ -190,6 +217,11 @@ def create_campaign(request):
             email_template=template,
             created_by=request.user,
         )
+        
+        # Increment trial campaigns counter if on free trial
+        if organization.subscription_tier == 'FREE_TRIAL':
+            organization.trial_campaigns_used += 1
+            organization.save()
         
         # Create targets for selected employees
         for id in employee_ids:
