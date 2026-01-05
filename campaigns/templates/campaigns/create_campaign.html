@@ -30,7 +30,12 @@
                 <select name="email_template" required class="select select-bordered">
                     <option value="">Select a template</option>
                     {% for template in templates %}
-                        <option value="{{ template.id }}">{{ template.name }} ({{ template.get_difficulty_level_display }})</option>
+                        <option value="{{ template.id }}">
+                            {{ template.name }} 
+                            [{{ template.get_scenario_type_display }}] 
+                            [{{ template.get_target_audience_display }}] 
+                            ({{ template.get_difficulty_level_display }})
+                        </option>
                     {% endfor %}
                 </select>
                 {% if not templates %}

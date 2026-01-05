@@ -9,6 +9,30 @@ TEMPLATE_DIFFICULTY_CHOICES = [
         ('MEDIUM', 'Medium'),
         ('HARD', 'Hard'),
     ]
+TEMPLATE_SCENARIO_CHOICES = [
+        ('PASSWORD_RESET', 'Password Reset'),
+        ('BENEFITS_PORTAL', 'Benefits/Payroll Portal'),
+        ('EMR_EHR_ACCESS', 'EMR/EHR System Access'),
+        ('PATIENT_PORTAL', 'Patient Portal'),
+        ('HIPAA_COMPLIANCE', 'HIPAA Compliance Notice'),
+        ('MEDICAL_VENDOR', 'Medical Equipment/Vendor'),
+        ('PHARMACY_RX', 'Pharmacy/Prescription'),
+        ('INSURANCE_VERIFY', 'Insurance Verification'),
+        ('HEALTH_ALERT', 'Health/Safety Alert'),
+        ('IT_SUPPORT', 'IT Support Request'),
+        ('PACKAGE_DELIVERY', 'Package Delivery'),
+        ('EXECUTIVE_EMAIL', 'Executive/CEO Email'),
+        ('OTHER', 'Other/General'),
+    ]
+TEMPLATE_AUDIENCE_CHOICES = [
+        ('CLINICAL_STAFF', 'Clinical Staff (Doctors, Nurses)'),
+        ('LAB_STAFF', 'Laboratory Staff'),
+        ('ADMINISTRATIVE', 'Administrative Staff'),
+        ('IT_STAFF', 'IT Staff'),
+        ('BILLING_CODING', 'Billing/Coding Staff'),
+        ('PHARMACY', 'Pharmacy Staff'),
+        ('GENERAL', 'General/All Staff'),
+    ]
 CAMPAIGN_STATUS_CHOICES = [
         ('DRAFT', 'Draft'),
         ('SCHEDULED', 'Scheduled'),
@@ -36,6 +60,18 @@ class EmailTemplate(models.Model):
         help_text="Description of phishing red flags in this template"
     )
     difficulty_level = models.CharField(max_length=10, choices=TEMPLATE_DIFFICULTY_CHOICES, default='MEDIUM')
+    scenario_type = models.CharField(
+        max_length=20, 
+        choices=TEMPLATE_SCENARIO_CHOICES, 
+        default='OTHER',
+        help_text="The type of phishing scenario this template simulates"
+    )
+    target_audience = models.CharField(
+        max_length=20,
+        choices=TEMPLATE_AUDIENCE_CHOICES,
+        default='GENERAL',
+        help_text="The intended audience/department for this template"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

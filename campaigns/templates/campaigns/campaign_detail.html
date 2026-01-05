@@ -83,6 +83,14 @@
                     <p>{{ campaign.email_template.get_difficulty_level_display }}</p>
                 </div>
                 <div>
+                    <p class="font-semibold">Scenario Type:</p>
+                    <p>{{ campaign.email_template.get_scenario_type_display }}</p>
+                </div>
+                <div>
+                    <p class="font-semibold">Target Audience:</p>
+                    <p>{{ campaign.email_template.get_target_audience_display }}</p>
+                </div>
+                <div>
                     <p class="font-semibold">Subject Line:</p>
                     <p>{{ campaign.email_template.subject_line }}</p>
                 </div>

@@ -4,10 +4,22 @@ from .models import EmailTemplate, Campaign, CampaignTarget, ComplianceReport
 
 @admin.register(EmailTemplate)
 class EmailTemplateAdmin(admin.ModelAdmin):
-    list_display = ['name', 'subject_line', 'difficulty_level', 'created_at']
-    list_filter = ['difficulty_level', 'created_at']
-    search_fields = ['name', 'subject_line']
+    list_display = ['name', 'scenario_type', 'target_audience', 'difficulty_level', 'created_at']
+    list_filter = ['scenario_type', 'target_audience', 'difficulty_level', 'created_at']
+    search_fields = ['name', 'subject_line', 'sender_name']
     ordering = ['-created_at']
+    fieldsets = (
+        ('Template Information', {
+            'fields': ('name', 'difficulty_level', 'scenario_type', 'target_audience')
+        }),
+        ('Email Content', {
+            'fields': ('subject_line', 'sender_name', 'sender_email', 'body_html')
+        }),
+        ('Educational Content', {
+            'fields': ('phishing_indicators',),
+            'description': 'Description of red flags to help educate employees after the simulation'
+        }),
+    )
 
 
 @admin.register(Campaign)
