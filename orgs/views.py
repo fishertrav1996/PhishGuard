@@ -9,7 +9,6 @@ from django.db import IntegrityError
 from .forms import NewOrgForm, EmployeeForm, EmployeeCSVUploadForm
 from .permissions import require_org_membership, get_user_membership
 
-# Eventually add group permission decorator here to restrict access to owners only
 @login_required
 def new_org_view(req):
     if req.method == 'POST':

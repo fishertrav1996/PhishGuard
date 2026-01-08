@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<!-- User Verify Email Template -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishers - Verify Your Email</title>
+    <style>
+        /* Inline styles for email client compatibility */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 40px 30px;
+        }
+        .email-body h2 {
+            color: #333333;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .email-body p {
+            color: #555555;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        .link-box {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-size: 14px;
+            color: #666666;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .email-footer p {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 30px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 30px 20px;
+            }
+            .email-header h1 {
+                font-size: 24px;
+            }
+            .email-body h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Email Header -->
+        <div class="email-header">
+            <h1>🛡️ PhishGuard </h1>
+        </div>
+        
+        <!-- Email Body -->
+        <div class="email-body">
+            <h2>Welcome to PhishGuard!</h2>
+            
+            <p>Hi {{ user.first_name|default:user.username }},</p>
+            
+            <p>Thank you for signing up for PhishGuard! We're excited to help you strengthen your organization's security awareness through healthcare-focused phishing simulations.</p>
+            
+            <p>To get started, please verify your email address by clicking the button below:</p>
+            
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ verification_url }}" class="cta-button">Verify Email Address</a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <!-- Post Verification Steps -->
+            <p><strong>What to do after verification?</strong></p>
+            <ul style="color: #555555; font-size: 16px; line-height: 1.8;">
+                <li>Create your organization profile</li>
+                <li>Create a free phishing simulation campaign for your organization</li>
+                <li>Access general phishing and healthcare-specific email templates</li>
+                <li>View detailed analytics and reports about your campaigns</li>
+            </ul>
+            
+            <div class="divider"></div>
+            
+            <p style="font-size: 14px; color: #666666;">
+                <!-- TODO: Maybe we update this to something like 6 hours? Check best practices-->
+                <strong>Security Note:</strong> This verification link will expire in 24 hours. 
+                If you didn't create a PhishGuard account, you can safely ignore this email.
+            </p>
+        </div>
+        
+        <!-- Email Footer -->
+        <div class="email-footer">
+            <p><strong>Need Help?</strong></p>
+            <p>Contact us at <a href="mailto:{{ support_email }}" style="color: #667eea; text-decoration: none;">{{ support_email }}</a></p>
+            <!-- TODO: Eventually we should pull this copyright year from a constant or config -->
+            <p style="margin-top: 20px;">© 2026 PhishGuard. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
